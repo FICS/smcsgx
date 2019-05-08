@@ -1,0 +1,24 @@
+root@daveti-syslearn:/opt/intel/sgxsdk/SampleCode/smcsgx# ./evaluator -d
+smcsgx: evaluator pid [25653]
+evaluator: enable debug
+evaluator: UT enabled
+trans-debug: into handle_att_nonce, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 0|8|9
+trans-debug: into handle_att_S2, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 9|10|11
+trans-debug: into handle_att_res, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 11|12|13
+trans-debug: into handle_input, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 13|14|0
+root@daveti-syslearn:/opt/intel/sgxsdk/SampleCode/smcsgx# ./sender -a daveti -d
+smcsgx: sender pid [25654]
+sender: use IP address daveti
+sender: enable debug
+sender: UT enabled
+trans-debug: into handle_att_S1, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 1|2|3
+trans-debug: into handle_att_S3, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 3|4|6
+trans-debug: into handle_result, len 777, buf 0x(nil)
+trans-debug: transition done with old|next|current states: 6|7|0
+root@daveti-syslearn:/opt/intel/sgxsdk/SampleCode/smcsgx# 

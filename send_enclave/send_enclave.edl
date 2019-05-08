@@ -1,0 +1,60 @@
+/*
+ * send_enclave.edl
+ * Top EDL file for the sender
+ * NOTE: no OCall involved
+ * Apr 16, 2016
+ * root@davejingtian.org
+ * htp://davejingtian.org
+ */
+
+enclave {
+	include "sgx_status.h"
+
+	trusted {
+		public sgx_status_t gen_nonce(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_S2(int s1_len, [in,size=s1_len] char *s1,
+					int s2_len, [out,size=s2_len] char *s2);
+		public sgx_status_t verify_att(int s3_len, [in,size=s3_len] char *s3,
+					[out,size=4] int *res);
+		public sgx_status_t gen_input(int len, [out,size=len] char *buf);
+		public sgx_status_t decode_res(int res_len, [in,size=res_len] char *res,
+					int fin_len, [out,size=fin_len] char *fin);
+		public sgx_status_t gen_input_yao(int len, [in,size=len] char *input,
+					int gen_len, [out,size=gen_len] char *gen,
+					int evl_len, [out,size=evl_len] char *evl,
+					int pem_len, [out,size=pem_len] char *pem);
+		public sgx_status_t gen_input_sfe(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_sfe_uc(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_sfe_dj(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_sfe_or(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_yao_or(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_yao_dj(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_yao_or_split(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_output(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_input_yao(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_sfe(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_sfe_uc(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_sfe_dj(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_sfe_or(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_yao_or(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+                public sgx_status_t decrypt_output_yao_dj(int len, [in,size=len] char *input,
+                                        int out_len, [out,size=out_len] char *output);
+		public sgx_status_t decrypt_output_yao_or_split(int len, [in,size=len] char *input,
+					int out_len, [out,size=out_len] char *output);
+		public sgx_status_t put_input_sfe(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_uc(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_dj(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_or(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_or(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_dj(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_dj2(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_or_split(int len, [in,size=len] char *buf);
+	};
+};

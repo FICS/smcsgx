@@ -1,0 +1,30 @@
+#define intlength 32
+#parties 3
+
+typedef int_t intlength int
+typedef int_t 0 nopartyinput
+typedef int_t 1 bool
+typedef int_t 16 thirdin
+typedef int_t 8 int8
+
+#input 1 bool
+#output 1 nopartyinput
+#input 2 nopartyinput
+#output 2 nopartyinput
+
+#input 3 thirdin
+#output 3 int8
+
+
+function int to_unknown(int a)
+{
+	return a;
+}
+
+function void main()
+{
+	
+		
+		output3{0:8} = input3{0:8} + input3{8:8}; 
+		
+}

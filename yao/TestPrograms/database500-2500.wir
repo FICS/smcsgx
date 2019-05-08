@@ -1,0 +1,60 @@
+#define numqueries 2500
+#define databasesize 500
+#define keysize 32
+#define datasize 64
+
+
+#parties 2
+
+typedef uint_t keysize KeyType
+typedef uint_t datasize DataType
+
+typedef struct_t queries
+{
+    KeyType keys[numqueries];
+}
+
+typedef struct_t queriesResult
+{
+    DataType results[numqueries];
+}
+
+typedef struct_t database
+{
+    DataType data[databasesize];
+}
+
+#input 2 database
+#input 1 queries
+#output 1 queriesResult
+
+function DataType makeUnknown(DataType x)
+{
+return x;
+}
+
+
+function void main()
+{
+
+
+for(KeyType i=0; i<numqueries;i++)
+{
+    KeyType key = input1.keys[i];
+    DataType result = makeUnknown(0);
+
++{
+    for(KeyType j=0;j<databasesize;j++)
+    {
+        if(key == j)
+        {
+            result = input2.data[j];
+        }
+    }
+}+
+    output1.results[i] = result;
+}
+
+
+
+}

@@ -1,0 +1,98 @@
+/*
+ * eval_enclave.edl
+ * TOP level edl for the evaluator
+ * Apr 17, 2016
+ * root@davejingtian.org
+ * http://davejingtian.org
+ */
+enclave {
+	from "sgx_tkey_exchange.edl" import *;
+
+	include "sgx_key_exchange.h"
+	include "sgx_trts.h"
+
+	trusted {
+		public sgx_status_t enclave_init_ra(int b_pse,
+						[out] sgx_ra_context_t *p_context);
+		public sgx_status_t enclave_ra_close(sgx_ra_context_t context);
+		public sgx_status_t put_nonce(int len, [in,size=len] char *buf);
+		public sgx_status_t verify_att_result_mac(sgx_ra_context_t context,
+						[in,size=message_size] uint8_t* message, 
+						size_t message_size, 
+						[in,size=mac_size] uint8_t* mac, 
+						size_t mac_size);
+		public sgx_status_t put_secret_data(sgx_ra_context_t context,  
+						[in,size=secret_size] uint8_t* p_secret,
+						uint32_t secret_size,
+						[in,count=16] uint8_t* gcm_mac);
+		public sgx_status_t gen_res(int input_len,
+						[in] char *input,
+						int res_len,
+						[out,size=res_len] char *res);
+		public sgx_status_t get_secret(int len, [out,size=len] char *buf);
+		public sgx_status_t gen_input_yao(int len, [in,size=len] char *input,
+						int gen_len, [out,size=gen_len] char *gen,
+						int evl_len, [out,size=evl_len] char *evl,
+						int pem_len, [out,size=pem_len] char *pem,
+						int gen_in_len, [out,size=gen_in_len] char *gen_in);
+		public sgx_status_t compute_sfe(int len, [in,size=len] char *input,
+						int evl_len, [out,size=evl_len] char *evl_out,
+						int gen_len, [out,size=gen_len] char *gen_out,
+						int gen_in_len, [out,size=gen_in_len] char *gen_in,
+						int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out,
+						int sfe_naive);
+		public sgx_status_t compute_sfe_uc(int len, [in,size=len] char *input,
+						int out_len, [out,size=out_len] char *output,
+						int gen_in_len, [out,size=gen_in_len] char *gen_in,
+						int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out,
+						int sfe_naive);
+		public sgx_status_t compute_sfe_dj(int len, [in,size=len] char *input,
+						int out_len, [out,size=out_len] char *output,
+						int gen_in_len, [out,size=gen_in_len] char *gen_in,
+						int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out,
+						int sfe_naive);
+		public sgx_status_t compute_sfe_or(int len, [in,size=len] char *input,
+						int out_len, [out,size=out_len] char *output,
+						int gen_in_len, [out,size=gen_in_len] char *gen_in,
+						int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out,
+						int oram);
+		public sgx_status_t compute_yao_or(int len, [in,size=len] char *input,
+						int out_len, [out,size=out_len] char *output,
+                                                int gen_len, [out,size=gen_len] char *gen,
+                                                int evl_len, [out,size=evl_len] char *evl,
+                                                int pem_len, [out,size=pem_len] char *pem,
+                                                int gen_in_len, [out,size=gen_in_len] char *gen_in,
+						int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out);
+                public sgx_status_t compute_yao_dj(int len, [in,size=len] char *input,
+                                                int out_len, [out,size=out_len] char *output,
+                                                int gen_len, [out,size=gen_len] char *gen,
+                                                int evl_len, [out,size=evl_len] char *evl,
+                                                int pem_len, [out,size=pem_len] char *pem,
+                                                int gen_in_len, [out,size=gen_in_len] char *gen_in,
+                                                int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out);
+                public sgx_status_t compute_yao_or_split(int len, [in,size=len] char *input,
+                                                int out_len, [out,size=out_len] char *output,
+                                                int gen_len, [out,size=gen_len] char *gen,
+                                                int evl_len, [out,size=evl_len] char *evl,
+                                                int pem_len, [out,size=pem_len] char *pem,
+                                                int gen_in_len, [out,size=gen_in_len] char *gen_in,
+                                                int gen_enc_len, [out,size=gen_enc_len] char *gen_enc_out);
+		public sgx_status_t put_input_sfe(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_uc(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_dj(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_sfe_or(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_or(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_dj(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_dj2(int len, [in,size=len] char *buf);
+		public sgx_status_t put_input_yao_or_split(int len, [in,size=len] char *buf);
+	};
+
+        /* 
+         * debug_string - invokes OCALL to display string buffer inside the enclave.
+         *  [in]: copy the string buffer to App outside.
+         *  [string]: specifies 'str' is a NULL terminated buffer.
+         */
+        untrusted {
+            void debug_string([in, string] const char * str);
+        };
+};

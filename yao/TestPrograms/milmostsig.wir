@@ -1,0 +1,67 @@
+#define MILSIZE 32
+#parties 3
+
+typedef uint_t MILSIZE insize
+typedef uint_t 2 sgxin
+typedef uint_t MILSIZE longint
+typedef uint_t 1 outputtype
+
+#input 1 insize
+#output 1 outputtype
+#input 2 insize
+#output 2 outputtype
+#input 3 sgxin
+
+
+function outputtype lessthan(longint ain, longint bin, outputtype borrowin)
+{
+    longint x=0;
+    
+    outputtype borrow=borrowin;
+    
+        longint a1 = ain;
+        longint b1 = bin;
+      	longint b;
+	b{0} = borrow;
+        borrow = 0;
+
+        if(a1 < (b1 + b))
+        {
+            borrow = 1;
+        }
+
+       
+    
+
+    if(borrow == 0)
+    {
+        x = 1;
+    }
+    else
+    {
+        x = 0;
+    }
+
+
+    return x{0};
+}
+
+function void main()
+{
+	longint x = input1{0:32};
+	longint y = input2{0:32};
+
+	outputtype borrowa = input3{0};
+	outputtype borrowb = input3{1};
+
+	output1 = lessthan(x,y,borrowa);
+	output2 = lessthan(y,x,borrowb);
+
+
+    if((output1 == 1) & (output2 == 1))
+    {
+        output1 = 0;
+        output2 = 0;
+    }
+
+}

@@ -1,0 +1,831 @@
+1,2c1,10
+< 
+< #include <iostream> //how to use external files/packages
+---
+> /*
+>  * SFE programs running in the enclave
+>  * Based on mil.cpp by Dr. Ben Mood
+>  * May 3, 2016
+>  * root@davejingtian.org
+>  * http://davejingtian.org
+>  */
+> #include "mysfe.h"
+> //#include "string.h"
+> //#include "util.h"
+4c12,14
+< #include <cmath>
+---
+> //#include <cmath>
+> #include <algorithm>
+> #include <cstdlib>
+7,8c17,23
+< #include <algorithm>
+< #include <stdlib.h>
+---
+> //#include <math.h>
+> //#include "sgx_trts.h"
+> 
+> /* For SFE ORAM DB */
+> using std::vector;
+> using std::deque;
+> using std::string;
+10c25,26
+< using namespace std;
+---
+> static int makeSame_int(int value);
+> static long makeSame_long(long value);
+15,44d30
+< long makeSame(long value)
+< {
+<     value = value | (value << 32);
+<     value = value | (value << 16);
+<     value = value | (value << 8);
+<     value = value | (value << 4);
+<     value = value | (value << 2);
+<     value = value | (value << 1);
+<     return value;
+< }
+< 
+< 
+< //takes 1 and 0 and returns a mask with all 1s or all 0s depending upon the entered value: NOTE: no if statements in this code
+< int makeSame(int value)
+< {
+<     value = value | (value << 16);
+<     value = value | (value << 8);
+<     value = value | (value << 4);
+<     value = value | (value << 2);
+<     value = value | (value << 1);
+<     
+<     
+<     return value;
+< }
+< 
+< 
+< 
+< 
+< 
+< 
+59c45
+< PairNode * makeSame(PairNode * valuein)
+---
+> PairNode * makeSame_PairNode(PairNode * valuein)
+72a59,71
+> /* fix SGX STL header bug...
+>  * Error is that there is no long long int rand overload
+>  * /opt/intel/sgxsdk/include/stlport/stl/_algo.c:540:20: error: call of overloaded 'abs(long long int&)' is ambiguous
+>    return abs(__rand) % __n;
+>  * /opt/intel/sgxsdk/include/stlport/stl/_cstdlib.h:139:13: note: long int abs(long int)
+>  */
+> long int rand_func(long long int a)
+> {
+> 	long int __rand;
+> 	if (SGX_SUCCESS != sgx_read_rand(reinterpret_cast<unsigned char *>(&__rand), sizeof(__rand))) {
+> 		// XXX FAIL HERE
+> 		return 0;
+> 	}
+74c73,74
+< 
+---
+> 	return abs(__rand) % a;
+> }
+170c170
+<             cout << "ERROR1: ORAM ADDING AN INDEX ALREADY CONTAINED\n";
+---
+> 				//cout << "ERROR1: ORAM ADDING AN INDEX ALREADY CONTAINED\n";
+245c245,247
+<         int node = rand()%2;
+---
+> 			int node; //= rand()%2;
+> 			sgx_read_rand((unsigned char *)&node, sizeof(node));
+> 			node = node % 2;
+251c253
+<         res1 = makeSame(res1);
+---
+> 			res1 = makeSame_PairNode(res1);
+259c261
+<         res2 = makeSame(res2);
+---
+> 			res2 = makeSame_PairNode(res2);
+265c267
+<         res3 = makeSame(res3);
+---
+> 			res3 = makeSame_PairNode(res3);
+274c276
+<         res6 = makeSame(res6);
+---
+> 			res6 = makeSame_long(res6);
+281c283
+<         res4 = makeSame(res4);
+---
+> 			res4 = makeSame_PairNode(res4);
+288c290
+<         res5 = makeSame(res5);
+---
+> 			res5 = makeSame_PairNode(res5);
+370c372,374
+<         int node = rand()%2;
+---
+> 			int node; // = rand()%2;
+> 			sgx_read_rand((unsigned char *)&node, sizeof(node));
+> 			node = node % 2;
+376c380
+<         res1 = makeSame(res1);
+---
+> 			res1 = makeSame_PairNode(res1);
+384c388
+<         res2 = makeSame(res2);
+---
+> 			res2 = makeSame_PairNode(res2);
+390c394
+<         res3 = makeSame(res3);
+---
+> 			res3 = makeSame_PairNode(res3);
+399c403
+<         res6 = makeSame(res6);
+---
+> 			res6 = makeSame_long(res6);
+409c413
+<         res4 = makeSame(res4);
+---
+> 			res4 = makeSame_PairNode(res4);
+416c420
+<         res5 = makeSame(res5);
+---
+> 			res5 = makeSame_PairNode(res5);
+485c489
+<         std::random_shuffle ( toBeReordered.begin(), toBeReordered.end() );
+---
+> 			std::random_shuffle ( toBeReordered.begin(), toBeReordered.end(), rand_func);
+827,828c831,833
+<             cout << "PUT: index already in tree: "<<n->index<<"\n";
+<             exit(1);
+---
+> 				//cout << "PUT: index already in tree: "<<n->index<<"\n";
+> 				//exit(1);
+> 				return;
+854c859
+<         cout << genspace(depth) << n->index<<" "<<n->data/*<<" "<<n<<" "<<n->parent*/<<"\n";
+---
+> 			//cout << genspace(depth) << n->index<<" "<<n->data/*<<" "<<n<<" "<<n->parent*/<<"\n";
+863c868
+<         cout << "printTree() is a TEST AND DEBUG FUNCTION ONLY, not for use in enclaves\nCycling through the tree in-order may reveal extra information\n";
+---
+> 			//cout << "printTree() is a TEST AND DEBUG FUNCTION ONLY, not for use in enclaves\nCycling through the tree in-order may reveal extra information\n";
+921c926,929
+<         int realindex = rand()%num;
+---
+> 			int realindex; //= rand()%num;
+> 			sgx_read_rand((unsigned char *)&realindex, sizeof(realindex));
+> 			realindex = realindex % num;
+> 
+925c933,935
+<             indexes[i] = rand()%oramsize;
+---
+> 				//indexes[i] = rand()%oramsize;
+> 				sgx_read_rand((unsigned char *)&(indexes[i]), sizeof(indexes[i]));
+> 				indexes[i] = indexes[i] % oramsize;
+928c938
+<             s = makeSame(s);
+---
+> 				s = makeSame_int(s);
+945c955
+<             isreal = makeSame(isreal);
+---
+> 				isreal = makeSame_long(isreal);
+954c964
+<                 res1 = makeSame(res1);
+---
+> 					res1 = makeSame_long(res1);
+972c982,985
+<         int realindex = rand()%num;
+---
+> 			int realindex; //= rand()%num;
+> 			sgx_read_rand((unsigned char *)&realindex, sizeof(realindex));
+> 			realindex = realindex % num;
+> 
+976c989,991
+<             indexes[i] = rand()%oramsize;
+---
+> 				//indexes[i] = rand()%oramsize;
+> 				sgx_read_rand((unsigned char *)&(indexes[i]), sizeof(indexes[i]));
+> 				indexes[i] = indexes[i] % oramsize;
+979c994
+<             s = makeSame(s);
+---
+> 				s = makeSame_int(s);
+994c1009
+<             isreal = makeSame(isreal);
+---
+> 				isreal = makeSame_long(isreal);
+1071,1072c1086,1091
+<                 int newplace = (rand()%10)+i-5;
+<                 int oldplace = (rand()%10)+i-5;
+---
+> 					int newplace; // = (rand()%10)+i-5;
+> 					int oldplace; // = (rand()%10)+i-5;
+> 					sgx_read_rand((unsigned char *)&newplace, sizeof(newplace));
+> 					newplace = (newplace % 10) + i - 5;
+> 					sgx_read_rand((unsigned char *)&oldplace, sizeof(oldplace));
+> 					oldplace = (oldplace % 10) + i - 5;
+1080c1099,1101
+<                     oldplace = (rand()%10)+i-5;
+---
+> 						//oldplace = (rand()%10)+i-5;
+> 						sgx_read_rand((unsigned char *)&oldplace, sizeof(oldplace));
+> 						oldplace = (oldplace % 10) + i - 5;
+1137c1158,1161
+<             int index = i+rand();
+---
+> 				int index; // = i+rand();
+> 				sgx_read_rand((unsigned char *)&index, sizeof(index));
+> 				index += i;
+> 
+1201c1225
+<              x = makeSame(x);
+---
+> 				x = makeSame_long(x);
+1214c1238
+<              x = makeSame(x);
+---
+> 				x = makeSame_long(x);
+1237a1262,1286
+> /* End SFE ORAM DB */
+> 
+> /* for SFE UC */
+> class Program
+> {
+> 	public:
+> 		short x[sfe_uc_gatecount];
+> 		short y[sfe_uc_gatecount];
+> 		char tt[sfe_uc_gatecount];
+> 		short d[sfe_uc_gatecount];
+> 
+> 		short output[sfe_uc_numoutputs];
+> 
+> 		void blank()
+> 		{
+> 			for(int i=0;i<sfe_uc_gatecount;i++)
+> 			{
+> 				x[i] = y[i] = tt[i] = d[i]=0;
+> 			}
+> 			for(int i=0;i<sfe_uc_numoutputs;i++)
+> 			{
+> 				output[i] = 0;
+> 			}
+> 		}
+> };
+1238a1288,1289
+> /* Global vars */
+> Program mysfe_uc_input;
+1240d1290
+< #include <math.h>
+1242,1243c1292,1307
+< #define queries 900
+< #define sizeOfDatabase 900
+---
+> static void init_mysfe_uc_input(sfe_uc_input_program *prog)
+> {
+> 	if (prog) {
+> 		/* Init using user's input */
+> 		memcpy(mysfe_uc_input.x, prog->x,
+> 				sfe_uc_gatecount*sizeof(short));
+> 		memcpy(mysfe_uc_input.y, prog->y,
+> 				sfe_uc_gatecount*sizeof(short));
+> 		memcpy(mysfe_uc_input.tt, prog->tt,
+> 				sfe_uc_gatecount*sizeof(char));
+> 		memcpy(mysfe_uc_input.d, prog->d,
+> 				sfe_uc_gatecount*sizeof(short));
+> 		memcpy(mysfe_uc_input.output, prog->output,
+> 				sfe_uc_numoutputs*sizeof(short));
+> 		return;
+> 	}
+1244a1309,1310
+> 	/* Init using the hardcode */
+> 	mysfe_uc_input.blank();
+1246c1312,1313
+< int main()
+---
+> 	/* this is a tempory test programy */
+> 	for(int i=0;i<sfe_uc_gatecount;i++)
+1247a1315,1324
+> 		mysfe_uc_input.x[i] = i;
+> 		mysfe_uc_input.y[i] = i;
+> 		mysfe_uc_input.tt[i] = 5;
+> 		mysfe_uc_input.d[i] = i;
+> 		//daveti: segv line
+> 		//input1.output[i] = i;
+> 		if (i < sfe_uc_numoutputs)
+> 			mysfe_uc_input.output[i] = i;
+> 	}
+> }
+1248a1326,1335
+> static long makeSame_long(long value)
+> {
+> 	value = value | (value << 32);
+> 	value = value | (value << 16);
+> 	value = value | (value << 8);
+> 	value = value | (value << 4);
+> 	value = value | (value << 2);
+> 	value = value | (value << 1);
+> 	return value;
+> }
+1249a1337,1343
+> static int makeSame_int(int value)
+> {
+> 	value = value | (value << 16);
+> 	value = value | (value << 8);
+> 	value = value | (value << 4);
+> 	value = value | (value << 2);
+> 	value = value | (value << 1);
+1250a1345,1346
+> 	return value;
+> }
+1251a1348,1353
+> static int lessequalto(unsigned int alice[sfe_mil_size],
+> 			unsigned int bob[sfe_mil_size])
+> {
+> 	unsigned int x=0;
+> 	unsigned int i;
+> 	unsigned int borrow=0;
+1252a1355,1360
+> 	for(i = 0; i < sfe_mil_size;)
+> 	{
+> 		unsigned int a1 = alice[i];
+> 		unsigned int b1 = bob[i];
+> 		unsigned int b = borrow;
+> 		borrow = 0;
+1254c1362,1364
+<    ///if statements should be like this:
+---
+> 		unsigned int t = (a1 < (b1 + b));
+> 		t = makeSame_int(t);
+> 		borrow = (t & 0x1) | ((~t) & borrow);
+1256,1257c1366,1367
+<     int a = 10;
+<     int b = 5;
+---
+> 		i++;
+> 	}
+1258a1369
+> 	unsigned int res = (borrow == 0);
+1259a1371,1372
+> 	res = makeSame_int(res);
+> 	x = (res & 0x1) | ((~res) & x);
+1261,1268c1374,1375
+<     //if(5 == 6)
+<     //{
+<     //result = a;
+<     //}
+<     //else
+<     //{
+<     //result = b;
+<     //}
+---
+> 	res = ~res;
+> 	x = (res & 0x0) | ((~res) & x);
+1270,1273c1377,1378
+<     //if
+<     int temp = a;
+<     //else
+<     int temp2 = b;
+---
+> 	return x;
+> }
+1275,1277c1380,1386
+<     //condition
+<     int s = 5 != 6;
+<     s = makeSame(s);
+---
+> void sfe_entry(unsigned int alice[sfe_mil_size],
+> 		unsigned int bob[sfe_mil_size],
+> 		unsigned int *alice_out,
+> 		unsigned int *bob_out)
+> {
+> 	unsigned int outputalice = lessequalto(alice,bob);
+> 	unsigned int outputbob = lessequalto(bob,alice);
+1279,1280c1388,1433
+<     //get results -> this statement selects a if s is true and b if s is false.
+<     int result = (s & a) | (~s & b);
+---
+> 	unsigned int res = (outputalice == 1) & (outputbob == 1);
+> 
+> 	outputbob = (res & 0x0) | ((~res) & outputbob);
+> 	outputalice = (res & 0x0) | ((~res) & outputalice);
+> 
+> 	memcpy(alice_out, &outputalice, sizeof(unsigned int));
+> 	memcpy(bob_out, &outputbob, sizeof(unsigned int));
+> }
+> 
+> void sfe_uc_entry(sfe_uc_input_program *prog,
+> 		bool input[sfe_uc_numinputs],
+> 		bool output[sfe_uc_numoutputs])
+> {
+> 	init_mysfe_uc_input(prog);
+> 
+> 	bool destinations[sfe_uc_poolsize];
+> 	bool outputs[sfe_uc_numoutputs];
+> 
+> 	for(int i=0;i<sfe_uc_numinputs;i++)
+> 	{
+> 		destinations[i] = input[i];
+> 	}
+> 
+> 	for(int i=0;i<sfe_uc_gatecount;i++)
+> 	{
+> 		short xad = mysfe_uc_input.x[i],
+> 		      yad = mysfe_uc_input.y[i],
+> 		      dad = mysfe_uc_input.d[i];
+> 
+> 		char truth = mysfe_uc_input.tt[i];
+> 		bool x,y;
+> 
+> 		for(int j=0;j<sfe_uc_poolsize;j++)
+> 		{
+> 			/*if(xad == j)
+> 			  {
+> 			  x = destinations[j];
+> 			  }*/
+> 
+> 			unsigned int t = xad == j;
+> 			t = makeSame_int(t);
+> 			x = (t & destinations[j]) | ((~t) & x);
+> 
+> 			t = yad == j;
+> 			t = makeSame_int(t);
+> 			y = (t & destinations[j]) | ((~t) & y);
+1281a1435,1439
+> 			/*if(yad == j)
+> 			  {
+> 			  y = destinations[j];
+> 			  }*/
+> 		}
+1283d1440
+<     //cout << "result: "<<result <<"\n";
+1284a1442,1443
+> 		char ttnum = y | (x <<1);
+> 		bool res;
+1285a1445,1460
+> 		/*if(ttnum == 0)
+> 		  {
+> 		  res = truth&0x1;
+> 		  }
+> 		  if(ttnum == 1)
+> 		  {
+> 		  res = (truth&0x3) >> 1;
+> 		  }
+> 		  if(ttnum == 2)
+> 		  {
+> 		  res = (truth&0x7) >> 2;
+> 		  }
+> 		  if(ttnum == 3)
+> 		  {
+> 		  res = (truth&0xF) >> 3;
+> 		  }*/
+1286a1462
+> 		res = (truth >> ttnum) & 0x1;
+1288,1289c1464,1468
+<     vector<unsigned int> alicein; //queries indexes
+<     vector<unsigned long> bobin; //database
+---
+> 		for(short j=0;j<sfe_uc_poolsize;j++)
+> 		{
+> 			unsigned int t = dad == j;
+> 			t = makeSame_int(t);
+> 			destinations[j] = (t & res) | ((~t) & destinations[j]);
+1291c1470,1474
+<     vector<unsigned long> output; //output
+---
+> 			/*if(dad == j)
+> 			  {
+> 			  destinations[j] = res;
+> 			  }*/
+> 		}
+1292a1476
+> 	}
+1293a1478,1484
+> 	for(short i=0;i<sfe_uc_numoutputs;i++)
+> 	{
+> 		for(short j=0;j<sfe_uc_poolsize;j++)
+> 		{
+> 			unsigned int t = mysfe_uc_input.output[i] == j;
+> 			t = makeSame_int(t);
+> 			outputs[i] = (t & destinations[j]) | ((~t) & outputs[i]);
+1295,1296c1486,1495
+<     ORAM o(sizeOfDatabase);
+<     bobin.resize(sizeOfDatabase);
+---
+> 			/*if(input1.output[i] == j)
+> 			  {
+> 			  outputs[i] = destinations[j];
+> 			  }*/
+> 		}
+> 	}
+> 
+> 	/* Copy out the outputs */
+> 	memcpy(output, outputs, SMC_SGX_SFE_UC_OUTPUT_LEN);
+> }
+1297a1497,1538
+> /* SFE Dijk entry point */
+> void sfe_dj_entry(sfe_dj_input_eval *evl_input,
+> 		sfe_dj_input_send *gen_input,
+> 		int output[sfe_dj_Nodes])
+> {
+> 	//input alice - sender
+> 	int edges[sfe_dj_Nodes*sfe_dj_Edges_per_node];
+> 	int connections[sfe_dj_Nodes*sfe_dj_Edges_per_node];
+> 
+> 	//input bob - evaluator
+> 	int startnode;
+> 	int endnode;
+> 
+> 	//other
+> 	int currentweight[sfe_dj_Nodes];
+> 	int inqueue[sfe_dj_Nodes];
+> 
+> 	int selectedconnections[sfe_dj_Edges_per_node];
+> 	int selectededges[sfe_dj_Edges_per_node];
+> 	int NodeLinks[sfe_dj_Nodes];
+> 	int Paths[sfe_dj_Nodes];
+> 
+> 	//daveti: Init the inputs using the passed value
+> 	if (evl_input) {
+> 		startnode = evl_input->startnode;
+> 		endnode = evl_input->endnode;
+> 	} else {
+> 		// Hardcode the input
+> 		startnode = 5;
+> 		endnode = 0;
+> 	}
+> 	memcpy(edges, gen_input->edges, SMC_SGX_SFE_DJ_INPUT_EDGES_LEN);
+> 	memcpy(connections, gen_input->connections,
+> 			SMC_SGX_SFE_DJ_INPUT_CONNS_LEN);
+> 	//daveti: Init done
+> 
+> 	for(int i=0;i<sfe_dj_Nodes;i++)
+> 	{
+> 		NodeLinks[i] = 0x0000FFFF;
+> 		Paths[i] = 0x0000FFFF;
+> 		currentweight[i] = sfe_dj_MaxWeight;
+> 		inqueue[i] = 0;
+1299,1300c1540,1544
+<     alicein.resize(queries);
+<     output.resize(queries);
+---
+> 		/*if(i == startnode)
+> 		  {
+> 		  inqueue[i] = 1;
+> 		  currentweight[i] =0;
+> 		  }*/
+1301a1546,1550
+> 		unsigned int t = i == startnode;
+> 		t = makeSame_int(t);
+> 		inqueue[i] = (t & 1) | ((~t) & inqueue[i]);
+> 		currentweight[i] = (t & 0) | ((~t) & currentweight[i]);
+> 	}
+1303,1307c1552
+<     //daveti: fake inputs
+<     for (int i = 0; i < queries; i++)
+< 	alicein[i] = i;
+<     for (int i = 0; i < sizeOfDatabase; i++)
+< 	bobin[i] = i;    
+---
+> 	int isDone;
+1309c1554
+<     for(int i=0;i<sizeOfDatabase;i++)
+---
+> 	for(int i=0;i<sfe_dj_MaxIterations;i++)
+1311c1556,1594
+<         o.set(i,bobin.at(i));
+---
+> 		int selectedWeight=sfe_dj_MaxWeight;
+> 		int selectedNode=0xFFFFFF;
+> 		int cconnection;
+> 
+> 		for(int j=0;j<sfe_dj_Nodes;j++)
+> 		{
+> 			/*if(inqueue[j] && selectedWeight > currentweight[j])
+> 			  {
+> 			  selectedNode = j;
+> 			  selectedWeight = currentweight[j];
+> 			  }*/
+> 
+> 			unsigned int t = (inqueue[j] & (selectedWeight > currentweight[j]));
+> 			t = makeSame_int(t);
+> 			selectedNode = (t & j) | ((~t) & selectedNode);
+> 			selectedWeight = (t & currentweight[j]) | ((~t) & selectedWeight);
+> 
+> 		}
+> 
+> 		/*if(selectedNode == endnode)
+> 		  {
+> 		  isDone = 1;
+> 		  }*/
+> 
+> 		unsigned int t = (selectedNode == endnode);
+> 		t = makeSame_int(t);
+> 		isDone = (t & 1) | ((~t) & isDone);
+> 
+> 
+> 		for (int j =0; j < sfe_dj_Nodes; j++)
+> 		{
+> 			/*if ( selectedNode == j)
+> 			  {
+> 			  inqueue[j] = 0;
+> 			  }*/
+> 
+> 			t = (selectedNode == j);
+> 			t = makeSame_int(t);
+> 			inqueue[j] = (t & 0) | ((~t) & inqueue[j]);
+1313a1597
+> 		selectedconnections[0] = selectedconnections[1] = selectedconnections[2] = selectedconnections[3] = 0xFFFFFF;
+1315c1599,1602
+<     for(int i=0;i<queries;i++)
+---
+> 
+> 		for(int j=0;j< sfe_dj_Nodes;j++)
+> 		{
+> 			/*if(j == selectedNode)
+1317d1603
+<         //o.set(i%o.oramsize,i);
+1319c1605,1628
+<         output.at(i) = o.get(alicein.at(i));
+---
+> 
+> 			  selectedconnections[0] = connections[j*Edges_per_node];
+> 			  selectedconnections[1] = connections[j*Edges_per_node+1];
+> 			  selectedconnections[2] = connections[j*Edges_per_node+2];
+> 			  selectedconnections[3] = connections[j*Edges_per_node+3];
+> 
+> 			  selectededges[0] = edges[j*Edges_per_node];
+> 			  selectededges[1] = edges[j*Edges_per_node+1];
+> 			  selectededges[2] = edges[j*Edges_per_node+2];
+> 			  selectededges[3] = edges[j*Edges_per_node+3];
+> 			  }*/
+> 
+> 			t = (selectedNode == j);
+> 			t = makeSame_int(t);
+> 
+> 			selectedconnections[0] = (t & connections[j*sfe_dj_Edges_per_node]) | ((~t) & selectedconnections[0]);
+> 			selectedconnections[1] = (t & connections[j*sfe_dj_Edges_per_node+1]) | ((~t) & selectedconnections[1]);
+> 			selectedconnections[2] = (t & connections[j*sfe_dj_Edges_per_node+2]) | ((~t) & selectedconnections[2]);
+> 			selectedconnections[3] = (t & connections[j*sfe_dj_Edges_per_node+3]) | ((~t) & selectedconnections[3]);
+> 
+> 			selectededges[0] = (t & edges[j*sfe_dj_Edges_per_node]) |   ((~t) & selectededges[0]);
+> 			selectededges[1] = (t & edges[j*sfe_dj_Edges_per_node+1]) | ((~t) & selectededges[1]);
+> 			selectededges[2] = (t & edges[j*sfe_dj_Edges_per_node+2]) | ((~t) & selectededges[2]);
+> 			selectededges[3] = (t & edges[j*sfe_dj_Edges_per_node+3]) | ((~t) & selectededges[3]);
+1323,1326c1632,1648
+<     //daveti: dump output
+<     for (int i = 0; i < queries; i++)
+< 	cout << output[i] << " ";
+<     cout << endl;
+---
+> 		/*cout << "selectednode: "<<selectedNode<<"\n";
+> 		  for(int i=0;i<4;i++)
+> 		  {
+> 		  cout << selectedconnections[i] <<" "<<selectededges[0]<<"\n";
+> 		  }*/
+> 
+> 
+> 
+> 		int newweight = 0;
+> 		int oldweight;
+> 		int oldlink;
+> 
+> 		for(int j=0;j<sfe_dj_Edges_per_node;j++)
+> 		{
+> 			int cweight = selectededges[j];
+> 			cconnection = selectedconnections[j];
+> 			newweight = selectedWeight + cweight;
+1327a1650
+> 			//cout << "cw: "<<cweight<<" "<<selectedWeight<<"\n";
+1328a1652,1663
+> 			for(int k=0;k<sfe_dj_Nodes;k++)
+> 			{
+> 				/*if(k == cconnection)
+> 				  {
+> 				  oldweight = currentweight[k];
+> 				  oldlink = NodeLinks[k];
+> 				  }*/
+> 
+> 				t = (k == cconnection);
+> 				t = makeSame_int(t);
+> 				oldweight = (t & currentweight[k]) | ((~t) & oldweight);
+> 				oldlink = (t & NodeLinks[k]) | ((~t) & oldlink);
+1330a1666,1667
+> 			int change = 1;
+> 			int newlink = selectedNode;
+1331a1669,1676
+> 			//cout << "oldwieght: "<<oldweight <<" "<<newweight<<"\n";
+> 
+> 			/*if(oldweight < newweight)
+> 			  {
+> 			  newlink = oldlink;
+> 			  newweight = oldweight;
+> 			  change = 0;
+> 			  }*/
+1332a1678,1682
+> 			t = (oldweight < newweight);
+> 			t = makeSame_int(t);
+> 			newlink = (t & oldlink) | ((~t) & newlink);
+> 			newweight = (t & oldweight) | ((~t) & newweight);
+> 			change = (t & 0) | ((~t) & change);
+1334a1685,1711
+> 			for(int k=0;k<sfe_dj_Nodes;k++)
+> 			{
+> 				/*if(k == cconnection)
+> 				  {
+> 				  currentweight[k] = newweight;
+> 				  NodeLinks[k] = newlink;
+> 				  }*/
+> 
+> 				t = (k == cconnection);
+> 				t = makeSame_int(t);
+> 				currentweight[k] = (t & newweight) | ((~t) & currentweight[k]);
+> 				NodeLinks[k] = (t & newlink) | ((~t) & NodeLinks[k]);
+> 
+> 			}
+> 
+> 			//cout << "new conc: "<<cconnection<<"\n";
+> 
+> 			for(int k=0;k<sfe_dj_Nodes;k++)
+> 			{
+> 				/*if(k == cconnection)
+> 				  {
+> 				  if(change == 1)
+> 				  {
+> 				  inqueue[k] = 1;
+> 				//cout << "quing: "<<k<<"\n";
+> 				}
+> 				}*/
+1335a1713,1782
+> 				t = ((k == cconnection) & (change == 1));
+> 				t = makeSame_int(t);
+> 				inqueue[k] = (t & 1) | ((~t) & inqueue[k]);
+> 			}
+> 		}
+> 	}
+> 
+> 
+> 	int nodeToGet = endnode;
+> 	for(int i=0; i<sfe_dj_Nodes; i++)
+> 	{
+> 		int goit =0;
+> 		for(int j=0;j<sfe_dj_Nodes;j++)
+> 		{
+> 			/*if(goit == 0)
+> 			  {
+> 			  if(j == nodeToGet)
+> 			  {
+> 			  nodeToGet = NodeLinks[j];
+> 			  Paths[i] = j;
+> 			  goit = 1;
+> 			  }
+> 			  }*/
+> 
+> 			unsigned int t = ((goit == 0) & (j == nodeToGet));
+> 			t = makeSame_int(t);
+> 			nodeToGet = (t & NodeLinks[j]) | ((~t) & nodeToGet);
+> 			Paths[i] = (t & j) | ((~t) & Paths[i]);
+> 			goit = (t & 1) | ((~t) & goit);
+> 		}
+> 	}
+> 
+> 	//should be output
+> 	/*
+> 	   for(int i=0;i<sfe_dj_Nodes;i++)
+> 	   {
+> 	   cout << Paths[i] <<" ";
+> 	   }
+> 	   cout << endl;
+> 	 */
+> 	memcpy(output, Paths, SMC_SGX_SFE_DJ_OUTPUT_LEN);
+> }
+> 
+> /* SFE ORAM database program */
+> void sfe_or_entry(unsigned long evl_input[sfe_or_sizeOfDatabase],
+> 		unsigned int gen_input[sfe_or_queries],
+> 		unsigned long output[sfe_or_queries],
+> 		int disable_oram)
+> {
+> 	// evl_input - bob input - DB
+> 	// gen_input - alice input - queries
+> 	// output - output for alice
+> 	int i;
+> 
+> 	if (disable_oram) {
+> 		/* Run the non-oram version of the DB */
+> 		for (i = 0; i < sfe_or_queries; i++)
+> 			output[i] = evl_input[gen_input[i]];
+> 		return;
+> 	}
+> 
+> 	/* Run the ORAM DB */
+> 	ORAM o(sfe_or_sizeOfDatabase);
+> 
+> 	for (i = 0; i < sfe_or_sizeOfDatabase; i++)
+> 		o.set(i, evl_input[i]);
+> 
+> 	for (i = 0; i < sfe_or_queries; i++)
+> 		output[i] = o.get(gen_input[i]);
+> }

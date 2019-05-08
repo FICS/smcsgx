@@ -1,0 +1,164 @@
+root@daveti-syslearn:/opt/intel/sgxsdk/SampleCode/smcsgx# make
+GEN  =>  eval_app/eval_enclave_u.c
+CC   <=  eval_app/eval_enclave_u.c
+CXX  <=  eval_app/eval_app.cpp
+CXX  <=  eval_app/trans.cpp
+LINK =>  evaluator
+GEN  =>  eval_enclave/eval_enclave_t.c
+CC   <=  eval_enclave/eval_enclave_t.c
+CXX  <=  eval_enclave/eval_enclave.cpp
+LINK =>  eval_enclave.so
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>1</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  eval_enclave.signed.so
+GEN  =>  send_app/send_enclave_u.c
+CC   <=  send_app/send_enclave_u.c
+CXX  <=  send_app/send_app.cpp
+CXX  <=  send_app/trans.cpp
+CXX  <=  send_app/utils.cpp
+CXX  <=  send_app/Edger8rSyntax/Arrays.cpp
+CXX  <=  send_app/Edger8rSyntax/Functions.cpp
+CXX  <=  send_app/Edger8rSyntax/Pointers.cpp
+CXX  <=  send_app/Edger8rSyntax/Types.cpp
+CXX  <=  send_app/TrustedLibrary/Libc.cpp
+CXX  <=  send_app/TrustedLibrary/Libcxx.cpp
+CXX  <=  send_app/TrustedLibrary/Thread.cpp
+LINK =>  sender
+GEN  =>  send_enclave/send_enclave_t.c
+CC   <=  send_enclave/send_enclave_t.c
+CXX  <=  send_enclave/send_enclave.cpp
+CXX  <=  send_enclave/Edger8rSyntax/Arrays.cpp
+CXX  <=  send_enclave/Edger8rSyntax/Functions.cpp
+CXX  <=  send_enclave/Edger8rSyntax/Pointers.cpp
+CXX  <=  send_enclave/Edger8rSyntax/Types.cpp
+CXX  <=  send_enclave/TrustedLibrary/Libc.cpp
+CXX  <=  send_enclave/TrustedLibrary/Libcxx.cpp
+CXX  <=  send_enclave/TrustedLibrary/Thread.cpp
+LINK =>  send_enclave.so
+<!-- Please refer to User's Guide for the explanation of each field -->
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>10</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  send_enclave.signed.so
+root@daveti-syslearn:/opt/intel/sgxsdk/SampleCode/smcsgx# 
+
+
+root@daveti-syslearn:~/git/sgx_private_code# make
+GEN  =>  eval_app/eval_enclave_u.c
+CC   <=  eval_app/eval_enclave_u.c
+CXX  <=  eval_app/eval_app.cpp
+CXX  <=  eval_app/trans.cpp
+LINK =>  evaluator
+GEN  =>  eval_enclave/eval_enclave_t.c
+CC   <=  eval_enclave/eval_enclave_t.c
+CXX  <=  eval_enclave/eval_enclave.cpp
+LINK =>  eval_enclave.so
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>1</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  eval_enclave.signed.so
+GEN  =>  send_app/send_enclave_u.c
+CC   <=  send_app/send_enclave_u.c
+CXX  <=  send_app/send_app.cpp
+CXX  <=  send_app/trans.cpp
+CXX  <=  send_app/mysgx.cpp
+LINK =>  sender
+GEN  =>  send_enclave/send_enclave_t.c
+CC   <=  send_enclave/send_enclave_t.c
+CXX  <=  send_enclave/send_enclave.cpp
+LINK =>  send_enclave.so
+<!-- Please refer to User's Guide for the explanation of each field -->
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>10</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  send_enclave.signed.so
+root@daveti-syslearn:~/git/sgx_private_code# 
+
+
+root@daveti-syslearn:~/git/sgx_private_code# make
+GEN  =>  eval_app/eval_enclave_u.c
+CC   <=  eval_app/eval_enclave_u.c
+CXX  <=  eval_app/eval_app.cpp
+CXX  <=  eval_app/trans.cpp
+CXX  <=  eval_app/mysgx.cpp
+LINK =>  evaluator
+GEN  =>  eval_enclave/eval_enclave_t.c
+CC   <=  eval_enclave/eval_enclave_t.c
+CXX  <=  eval_enclave/eval_enclave.cpp
+LINK =>  eval_enclave.so
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>1</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  eval_enclave.signed.so
+GEN  =>  send_app/send_enclave_u.c
+CC   <=  send_app/send_enclave_u.c
+CXX  <=  send_app/send_app.cpp
+CXX  <=  send_app/trans.cpp
+CXX  <=  send_app/mysgx.cpp
+LINK =>  sender
+GEN  =>  send_enclave/send_enclave_t.c
+CC   <=  send_enclave/send_enclave_t.c
+CXX  <=  send_enclave/send_enclave.cpp
+LINK =>  send_enclave.so
+<!-- Please refer to User's Guide for the explanation of each field -->
+<EnclaveConfiguration>
+    <ProdID>0</ProdID>
+    <ISVSVN>0</ISVSVN>
+    <StackMaxSize>0x40000</StackMaxSize>
+    <HeapMaxSize>0x100000</HeapMaxSize>
+    <TCSNum>10</TCSNum>
+    <TCSPolicy>1</TCSPolicy>
+    <DisableDebug>0</DisableDebug>
+    <MiscSelect>0</MiscSelect>
+    <MiscMask>0xFFFFFFFF</MiscMask>
+</EnclaveConfiguration>
+Succeed.
+SIGN =>  send_enclave.signed.so
+root@daveti-syslearn:~/git/sgx_private_code# 
+

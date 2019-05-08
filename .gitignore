@@ -1,0 +1,23 @@
+# Binary / intermediate output files
+*.o
+*.so
+evaluator
+sender
+*.hex
+*.tar.gz
+
+# Auto generated files from EDL
+*_u.c
+*_u.h
+*_t.c
+*_t.h
+
+# Auto generated eval files
+send_bm.sh
+eval_bm.sh
+
+# ViM swap files
+*.swp
+
+# Mac junk
+.DS_Store

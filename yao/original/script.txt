@@ -1,0 +1,124 @@
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/data/local   
+export LD_LIBRARY_PATH
+PORT1=25000
+PORT2=18000
+NUMNODES=$1
+NUMCIR=$2
+IP1=10.0.1.3
+IP2=10.0.1.3
+SECURITY=80
+
+echo $1
+echo " "
+echo $2
+echo "\n"
+
+PROGRAM=./circuits/edt-dist32.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+exit
+
+'
+PROGRAM=./circuits/dijkstra20.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/dijkstra50.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/dijkstra100.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/rsa-blind128.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+exit
+'
+
+'
+PROGRAM=./circuits/edt-dist2.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/edt-dist4.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist8.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist16.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist32.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist64.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist128.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/mil4.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil32.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil128.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil1024.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/mil8192.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/setinter2.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter4.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter8.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter16.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter32.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter64.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter128.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/aes.cir.bin.hash-free
+./r5.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+'
+
+
+PROGRAM=./circuits/edt-dist2.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist4.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist8.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+
+PROGRAM=./circuits/edt-dist16.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist32.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist64.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/edt-dist128.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil4.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil32.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil128.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil1024.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/mil8192.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter2.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter4.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter8.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter16.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter32.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter64.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/setinter128.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+PROGRAM=./circuits/aes.cir.bin.hash-free
+./r5nompi.txt $SECURITY $NUMNODES $PROGRAM $IP1 $PORT1  $IP2 $PORT2 $NUMCIR
+

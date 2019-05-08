@@ -1,0 +1,142 @@
+7,8d6
+< #include <algorithm>
+< #include <stdlib.h>
+449,464d446
+<     //takes accessed nodes, removes, and then adds them back in.
+<     void oramclean()
+<     {
+<         //cout <<"------------------------ clean start\n";
+<         
+<         //cout << "clean start\n";
+<         
+<         //printTree();
+<         
+<         //cout <<"Removing: ";
+<         
+<         
+<         
+<         sort( toBeReordered.begin(), toBeReordered.end() );
+<         toBeReordered.erase( unique( toBeReordered.begin(), toBeReordered.end() ), toBeReordered.end() );
+<         
+467,509d448
+<         //remove all touched nodes from tree
+<         for(int i=0;i<toBeReordered.size();i++)
+<         {
+<             removeNode(toBeReordered.at(i));
+<             //cout << " "<<toBeReordered.at(i)->index<<" ";
+<             //printTree();
+<             
+<         }
+<         //cout <<"\n";
+<         //printTree();
+<         
+<         tempdata.clear();
+<         //change memory of all nodes
+<         for(int i=0;i<toBeReordered.size();i++)
+<         {
+<             tempdata.push_back(getBlankNode());
+<         }
+<         
+<         std::random_shuffle ( toBeReordered.begin(), toBeReordered.end() );
+< 
+<         
+<         for(int i=0;i<tempdata.size();i++)
+<         {
+<             tempdata.at(i)->data = toBeReordered.at(i)->data;
+<             tempdata.at(i)->index = toBeReordered.at(i)->index;
+<             
+<             data.push_back(toBeReordered.at(i));
+<         }
+<         
+<         toBeReordered.clear();
+<         
+<         //add new nodes back in
+<         for(int i=0;i<tempdata.size();i++)
+<         {
+<             putNode(tempdata.at(i));
+<             //cout <<"putting node\n";
+<         }
+<         
+<         tempdata.clear();
+<         
+<          //cout <<"------------------------ clean end\n";
+<     }
+<     
+1065c1004
+<         int sizexy = allnodes.size();
+---
+>         /*int sizexy = allnodes.size();
+1109a1049,1078
+>         }*/
+>         
+>         unsigned int q = rand();
+>         
+>         vector<int> indexes;
+>         indexes.resize(allnodes.size());
+>         for(int i=0;i<allnodes.size();i++)
+>         {
+>             indexes[i]=(i+q)%allnodes.size();
+>         }
+>         
+> 
+>         std::random_shuffle ( indexes.begin(), indexes.end() );
+>         
+>         unsigned int sizeM = allnodes.size();
+>         
+>         for(int i=0;i<sizeM;i++)
+>         {
+>             for(int j=0;j<sizeM;j++)
+>             {
+>                 /*if(j == indexes[i])
+>                 {
+>                     allnodes[i]->data = tempdatanonpointer.at(j*2);
+>                     allnodes[i]->index = tempdatanonpointer.at(j*2+1);
+>                 }*/
+>                 
+>                 long qres = makeSame(j == indexes[i]);
+>                 allnodes[i]->data = (qres & tempdatanonpointer[j*2]) |  ((~qres) & allnodes[i]->data);
+>                 allnodes[i]->index = (qres & tempdatanonpointer[j*2+1]) |  ((~qres) & allnodes[i]->index);
+>             }
+1112,1114d1080
+<         /*endTime = RDTSC;
+<         cout << "b: " << (endTime - startTime)<<"\n";
+<         startTime = RDTSC;*/
+1116c1082
+<         std::random_shuffle ( allnodes.begin(), allnodes.end() );
+---
+>         
+1242,1243c1208,1209
+< #define queries 900
+< #define sizeOfDatabase 900
+---
+> #define queries 100
+> #define sizeOfDatabase 100
+1303,1307d1268
+<     //daveti: fake inputs
+<     for (int i = 0; i < queries; i++)
+< 	alicein[i] = i;
+<     for (int i = 0; i < sizeOfDatabase; i++)
+< 	bobin[i] = i;    
+1311c1272,1280
+<         o.set(i,bobin.at(i));
+---
+>         //o.set(i,bobin.at(i));
+>         
+>         o.set(i,i);
+>         alicein.at(i) = i;
+>     }
+>     
+>     for(int i=0;i<10000;i++)
+>     {
+>         o.set(i%sizeOfDatabase,i);
+1320a1290
+>         cout << output.at(i)<<"\n";
+1323,1326c1293
+<     //daveti: dump output
+<     for (int i = 0; i < queries; i++)
+< 	cout << output[i] << " ";
+<     cout << endl;
+---
+>     //o.printTrees();
+1327a1295
+> //cout <<	o.get(10000) <<"\n";

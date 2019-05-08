@@ -1,0 +1,7 @@
+# Sample SFE input for Evaluator
+# Lines starting with '#' will be ignored
+# The first valid line should be
+# 1. SFE - for SFE mil
+# 2. SFEUC - for SFE uc
+# 3. SFEDJ - for SFE dijk
+SFEOR

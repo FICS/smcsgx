@@ -1,0 +1,7 @@
+SFE programs V2 for SMCSGX
+
+Sync'd with 
+https://bitbucket.org/uf_sensei/smcsgx
+
+May 12, 2016
+daveti

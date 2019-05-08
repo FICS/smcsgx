@@ -1,0 +1,39 @@
+#define secrets 10
+#parties 3
+
+typedef uint_t 64 long
+typedef uint_t 32 keytype
+typedef uint_t secrets flagtype
+
+/*
+#input 1 longint
+#output 1 outputtype
+*/
+
+
+typedef struct_t database
+{
+	long entries[secrets];
+}
+
+typedef struct_t databaseout
+{
+	long entries[secrets];
+}
+
+
+
+#input 3 flagtype
+#input 2 database 
+#output 1 databaseout
+
+function void main()
+{
+	for(keytype i=0;i<secrets;i++)
+	{
+		if(input3{i})
+		{
+			output1.entries[i] = input2.entries[i];
+		}
+	}
+}

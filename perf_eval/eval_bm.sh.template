@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Benchmarking script for the evaluator
+# May 16, 2016
+# daveti, granth
+
+# required for libyao.so
+export LD_LIBRARY_PATH=$PWD
+
+DEBUG=0
+LOOP_NUM=100
+CONFIG=@@CONFIG_NAME@@
+TMP_OUTPUT=$(mktemp)
+
+clean() {
+	rm -f $TMP_OUTPUT
+}
+trap clean EXIT
+
+FIN_OUTPUT=${CONFIG}-eval.out
+PORT=20202
+SFE_INPUT="@@INPUT_FILE@@"
+
+if [ -f $FIN_OUTPUT ]; then
+	rm "$FIN_OUTPUT"
+fi
+
+# add some extra info to the output
+if [ -f deploy-info.txt ]; then
+	echo "Deploy information"
+	echo "-----------------------------"
+	cat deploy-info.txt
+	cat deploy-info.txt >> "$FIN_OUTPUT"
+fi
+
+echo $SFE_INPUT >> $FIN_OUTPUT
+
+echo "[EVALUATOR] Starting $CONFIG evaluation (v2) with $LOOP_NUM runs"
+
+for i in `seq 1 $LOOP_NUM`;
+do
+	if [ $DEBUG = 1 ]; then
+		./evaluator @@EVAL_ARGS@@ -d -p $PORT $SFE_INPUT
+	else
+		./evaluator @@EVAL_ARGS@@ -p $PORT $SFE_INPUT > $TMP_OUTPUT
+	fi
+
+	tail -n 3 $TMP_OUTPUT >> $FIN_OUTPUT
+	tail -n 3 $TMP_OUTPUT | egrep -i 'failed|err|warn'
+
+	echo "---------------" >> $FIN_OUTPUT
+	echo "[EVALUATOR] run $i done"
+	echo "[EVALUATOR] run $i done" >> $FIN_OUTPUT
+done
+
+echo -e "[EVALUATOR] Evaluation complete!\a"

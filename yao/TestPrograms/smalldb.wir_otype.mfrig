@@ -1,0 +1,23 @@
+printing IO type wire numbers:
+input3 0 to 9
+input2.entries[0] 0 to 63
+input2.entries[1] 64 to 127
+input2.entries[2] 128 to 191
+input2.entries[3] 192 to 255
+input2.entries[4] 256 to 319
+input2.entries[5] 320 to 383
+input2.entries[6] 384 to 447
+input2.entries[7] 448 to 511
+input2.entries[8] 512 to 575
+input2.entries[9] 576 to 639
+output1.entries[0] 0 to 63
+output1.entries[1] 64 to 127
+output1.entries[2] 128 to 191
+output1.entries[3] 192 to 255
+output1.entries[4] 256 to 319
+output1.entries[5] 320 to 383
+output1.entries[6] 384 to 447
+output1.entries[7] 448 to 511
+output1.entries[8] 512 to 575
+output1.entries[9] 576 to 639
+

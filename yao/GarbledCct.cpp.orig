@@ -1,0 +1,1313 @@
+
+#include "GarbledCct.h"
+#include <string>
+#include <string.h>
+
+#define RDTSC2 ({unsigned long long res;  unsigned hi, lo;   __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi)); res =  ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );res;})
+unsigned long startTimec, endTimec;
+unsigned long startTimed, endTimed;
+
+
+
+
+/*void print(std::string mark, Bytes & b, __m128i & i)
+{
+	//std::cout <<"\n"<<mark<< " Bytes: "<<b.to_hex()<<"\n";
+	
+	Bytes q;
+	q.resize(16,0);
+	_mm_storeu_si128(reinterpret_cast<__m128i*>(&q[0]), i);
+	//std::cout << mark << " mmInt: "<<q.to_hex()<<"\n";
+
+	if(b.to_hex()!=q.to_hex())
+		std::cout<<"ERRORORORORORORORORORRR3333!!!111!1!!\n";
+	
+}
+
+void print(std::string mark, Bytes & b, Bytes & q)
+{
+	//std::cout <<"\n"<<mark<< " Bytes: "<<b.to_hex()<<"\n";
+	
+	
+	//std::cout << mark << " mmInt: "<<q.to_hex()<<"\n";
+
+	if(b.to_hex()!=q.to_hex())
+		std::cout<<"ERORORORORORORORORORRR3333!!!111!1!!\n";
+	
+}*/
+
+
+uint32_t  * op2;
+uint32_t  * op1;
+uint32_t  * czk;
+
+
+/*inline void fast_xor_bytes(Bytes & d, Bytes & a, Bytes & b)
+{
+	
+	op2 = (uint32_t *) & b[0];
+	op1 = (uint32_t *) & a[0];
+	czk = (uint32_t *) & d[0];
+
+
+	czk[0] = op1[0] ^ op2[0];
+	czk[1] = op1[1] ^ op2[1];
+	czk[2] = op1[2] ^ op2[2];
+	czk[3] = op1[3] ^ op2[3];
+	
+}*/
+
+#define fast_xor_bytes(d,a,b) op2 = (uint32_t *) & b[0];  op1 = (uint32_t *) & a[0]; czk = (uint32_t *) & d[0];	czk[0] = op1[0] ^ op2[0];czk[1] = op1[1] ^ op2[1];czk[2] = op1[2] ^ op2[2]; czk[3] = op1[3] ^ op2[3];
+	
+
+
+/*inline void fast_assign_bytes(Bytes & d, Bytes & a)
+{
+	
+	memcpy(&(d[0]),&(a[0]),16);
+}*/
+
+#define fast_assign_bytes(d,a) 	memcpy(&(d[0]),&(a[0]),16)
+
+
+inline void fast_set_bytes(Bytes & a, uint64_t & l)
+{
+        int index=0;
+
+
+        //resize(16,0);
+
+	op2 = (uint32_t *) & a[0];
+ 
+	a[0] = l&0xFF;
+	a[1] = (l >> 32)&0xFF;
+
+	//a[2] = a[0];
+	//a[3] = a[1];
+
+}
+
+inline void fast_add_bytes(Bytes & d, Bytes & a, Bytes & b)
+{
+	op2 = (uint32_t *) & b[0];
+	op1 = (uint32_t *) & a[0];
+	czk = (uint32_t *) & d[0];
+
+	memcpy(czk,op1,16);
+	memcpy(czk+4,op2,16);	
+}
+
+
+inline void fast_and_bytes(Bytes & d, Bytes & a, Bytes & b)
+{
+	op2 = (uint32_t *) & b[0];
+	op1 = (uint32_t *) & a[0];
+	czk = (uint32_t *) & d[0];
+
+	czk[0] = op1[0] & op2[0];
+	czk[1] = op1[1] & op2[1];	
+	czk[2] = op1[2] & op2[2];
+	czk[3] = op1[3] & op2[3];
+}	
+
+
+
+void GarbledCct::createinput()
+{
+	for (size_t ix = 0; ix < Env::circuit().gen_inp_cnt(); ix++)
+	{
+		new_m_M[2*ix+0] = m_prng.rand(Env::k());
+		new_m_M[2*ix+1] = m_prng.rand(Env::k());
+
+	}
+}
+
+void GarbledCct::gen_init(const vector<Bytes> &ot_keys, const Bytes &gen_inp_mask, const Bytes &seed)
+{
+	buffersize = 0;
+
+	m_ot_keys = &ot_keys;
+	m_gen_inp_mask = gen_inp_mask;
+
+
+	m_prng.srand(seed);
+
+	// R is a random k-bit string whose 0-th bit has to be 1
+	static Bytes tmp;
+
+	tmp = m_prng.rand(Env::k());
+	tmp.set_ith_bit(0, 1);
+	tmp.resize(16, 0);
+	//m_R = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&tmp[0]));
+	m_R_b = tmp;
+	//m_R_b.resize(16,0);
+	//print("R",m_R_b,m_R);
+
+	m_gate_ix = 0;
+
+	m_gen_inp_ix = 0;
+	m_evl_inp_ix = 0;
+	m_gen_out_ix = 0;
+	m_evl_out_ix = 0;
+
+	m_sgx_inp_ix=0;
+	m_sgx_out_ix=0;
+
+	m_o_bufr.clear();
+
+	/*if (m_w == 0)
+	{
+		m_w = new __m128i[Env::circuit().m_cnt];
+	}*/
+
+	m_w_b.resize(Env::circuit().m_cnt);
+
+
+	for(int i=0;i<m_w_b.size();i++)
+	{
+		m_w_b[i].resize(16);
+	}
+
+	tmp.assign(16, 0);
+	for (size_t ix = 0; ix < Env::k(); ix++) tmp.set_ith_bit(ix, 1);
+	//m_clear_mask = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+	m_clear_mask_b = tmp;
+	//print("clear",m_clear_mask_b,m_clear_mask);
+
+   	m_m.resize(Env::circuit().gen_inp_cnt()*2);
+	m_M.resize(Env::circuit().gen_inp_cnt()*2);
+
+   	
+	new_m_M.resize(Env::circuit().gen_inp_cnt()*2);
+
+	createinput();
+
+	Z m0, m1;
+
+	X_b[0].resize(16,0);
+	X_b[1].resize(16,0);
+	Y_b[0].resize(16,0);
+	Y_b[1].resize(16,0);
+	Z_b[0].resize(16,0);
+	Z_b[1].resize(16,0);
+	aes_plaintext_b.resize(16,0);
+	aes_ciphertext_b.resize(16,0);
+	aes_key_b[0].resize(16,0);
+	aes_key_b[1].resize(16,0);
+		
+	addtmp.resize(32,0);
+
+	// init group elements associated with the generator's input bits
+	for (size_t ix = 0; ix < Env::circuit().gen_inp_cnt(); ix++)
+	{
+		//new_m_M[2*ix+0] = m_prng.rand(Env::k());
+		//new_m_M[2*ix+1] = m_prng.rand(Env::k());
+
+
+		m0.random(m_prng);
+		m1.random(m_prng);
+
+		m_m[2*ix+0] = m0;
+		m_m[2*ix+1] = m1;
+
+		m_M[2*ix+0] = Env::clawfree().F(0, m0);
+		m_M[2*ix+1] = Env::clawfree().F(1, m1);
+	}
+}
+
+
+const int CIRCUIT_HASH_BUFFER_SIZE = 10*1024*1024;
+
+
+void GarbledCct::com_init(const vector<Bytes> &ot_keys, const Bytes &gen_inp_mask, const Bytes &seed)
+{
+	gen_init(ot_keys, gen_inp_mask, seed);
+	//m_hash.reserve(CIRCUIT_HASH_BUFFER_SIZE+64);
+	//m_hash.clear();
+}
+
+
+void GarbledCct::evl_init(const vector<Bytes> &ot_keys, const Bytes &masked_gen_inp, const Bytes &evl_inp)
+{
+	buffersize = 0;
+
+	m_ot_keys = &ot_keys;
+	m_gen_inp_mask = masked_gen_inp;
+	m_evl_inp = evl_inp;
+
+	m_C.resize(Env::circuit().gen_out_cnt()*2);
+
+	m_evl_out.resize((Env::circuit().evl_out_cnt()+7)/8);
+	m_gen_out.resize((Env::circuit().gen_out_cnt()+7)/8);
+
+	m_gate_ix = 0;
+
+	m_gen_inp_ix = 0;
+	m_evl_inp_ix = 0;
+	m_gen_out_ix = 0;
+	m_evl_out_ix = 0;
+
+	m_sgx_inp_ix=0;
+	m_sgx_out_ix=0;
+
+
+	m_i_bufr.clear();
+
+	/*if (m_w == 0)
+	{
+		m_w = new __m128i[Env::circuit().m_cnt];
+	}*/
+	m_w_b.resize(Env::circuit().m_cnt);
+
+	for(int i=0;i<m_w_b.size();i++)
+	{
+		m_w_b[i].resize(16);
+	}
+
+	static Bytes tmp;
+
+	tmp.assign(16, 0);
+	addtmp.resize(32,0);
+
+	aes_key_0.resize(16,0);
+	aes_key_1.resize(16,0);
+	current_key_b.resize(16,0);
+	aes_key_b[0].resize(16,0);
+	aes_key_b[1].resize(16,0);
+	aes_plaintext_b.resize(16,0);
+	aes_ciphertext_b.resize(16,0);	
+	for (size_t ix = 0; ix < Env::k(); ix++) tmp.set_ith_bit(ix, 1);
+	//std::cout << "clear mask "<<tmp.to_hex()<<"\n";
+
+	//m_clear_mask = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+	m_clear_mask_b = tmp;
+	//print("clear2",m_clear_mask_b,m_clear_mask);
+	//print(1,tmp,m_clear_mask);
+	//m_hash.clear();
+}
+
+
+void GarbledCct::gen_next_gate(const Gate &current_gate)
+{
+	//__m128i current_zero_key;
+	static Bytes current_zero_key_b;
+
+	if (current_gate.m_tag == Circuit::GEN_INP)
+	{
+		//__m128i a[2];
+		Bytes a_b[2];
+
+		// zero_key = m_prng.rand(Env::k());
+		static Bytes tmp;
+
+		tmp = m_prng.rand(Env::k());
+		tmp.resize(16, 0);
+		//current_zero_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_zero_key_b = tmp;
+		//print("czkeyg",current_zero_key_b,current_zero_key);
+
+		// a[0] = m_M[2*m_gen_inp_ix+0].to_bytes().hash(Env::k());
+		tmp = new_m_M[2*m_gen_inp_ix+0].hash(Env::k());
+		tmp.resize(16, 0);
+		//a[0] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		
+		a_b[0].resize(16);
+		fast_assign_bytes(a_b[0],tmp);
+		//a_b[0] = tmp;
+
+		// a[1] = m_M[2*m_gen_inp_ix+1].to_bytes().hash(Env::k());
+		tmp = new_m_M[2*m_gen_inp_ix+1].hash(Env::k());
+		tmp.resize(16, 0);
+		//a[1] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		
+		a_b[1].resize(16);
+		fast_assign_bytes(a_b[1],tmp);
+	
+	//	a_b[1] = tmp;
+		
+
+		// a[0] ^= zero_key; a[1] ^= zero_key ^ R;
+		//a[0] = _mm_xor_si128(a[0], current_zero_key);
+		//a[1] = _mm_xor_si128(a[1], _mm_xor_si128(current_zero_key, m_R));
+
+		uint8_t bit = m_gen_inp_mask.get_ith_bit(m_gen_inp_ix);
+
+/*		if(m_gen_inp_ix < 4)
+			std::cout <<"bit: "<< (int)bit <<"  "<<m_gen_inp_ix<<" "<<a_b[bit].to_hex()<<" "<<a_b[1-bit].to_hex()<<  "\n";
+
+*/
+
+
+		fast_xor_bytes(a_b[0],a_b[0],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],m_R_b);
+
+		/*a_b[0] = a_b[0]^current_zero_key_b;
+		a_b[1] = a_b[1]^current_zero_key_b^m_R_b;
+		*/
+
+
+		//print("a0",a_b[0],a[0]);
+		//print("a1",a_b[1],a[1]);
+
+		// m_o_bufr += a[bit];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[bit]);
+		
+		fast_assign_bytes(tmp,a_b[bit]);
+		//tmp = a_b[bit];
+		
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+	
+
+		// m_o_bufr += a[1-bit];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[1-bit]);
+
+
+		//tmp = a_b[1-bit];
+		fast_assign_bytes(tmp,a_b[1-bit]);
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+		
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+		
+		m_gen_inp_ix++;
+	}
+	else if (current_gate.m_tag == Circuit::EVL_INP)
+	{
+		//__m128i a[2];
+		Bytes a_b[2];
+
+		// zero_key = m_prng.rand(Env::k());
+		static Bytes tmp;
+
+		tmp = m_prng.rand(Env::k());
+		tmp.resize(16, 0);
+		//current_zero_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_zero_key_b = tmp;
+		//print("czkeyg",current_zero_key_b,current_zero_key);
+
+		// a[0] = (*m_ot_keys)[2*m_evl_inp_ix+0];
+		tmp = (*m_ot_keys)[2*m_evl_inp_ix+0];
+		tmp.resize(16, 0);
+		//a[0] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		
+
+		//a_b[0] = tmp;
+		a_b[0].resize(16);
+		fast_assign_bytes(a_b[0],tmp);
+	
+	
+
+		// a[1] = (*m_ot_keys)[2*m_evl_inp_ix+1];
+		tmp = (*m_ot_keys)[2*m_evl_inp_ix+1];
+		tmp.resize(16, 0);
+		//a[1] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		//a_b[1] = tmp;
+		a_b[1].resize(16);
+		fast_assign_bytes(a_b[1],tmp);
+	
+
+		// a[0] ^= zero_key; a[1] ^= zero_key ^ R;
+		//a[0] = _mm_xor_si128(a[0], current_zero_key);
+		//a[1] = _mm_xor_si128(a[1], _mm_xor_si128(current_zero_key, m_R));
+
+		/*a_b[0] = a_b[0]^current_zero_key_b;
+		a_b[1] = a_b[1]^current_zero_key_b^m_R_b;
+		*/
+
+		fast_xor_bytes(a_b[0],a_b[0],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],m_R_b);
+
+
+		
+
+
+		//print("a0-2",a_b[0],a[0]);
+		//print("a1-2",a_b[1],a[1]);
+
+		// m_o_bufr += a[0];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[0]);
+		//tmp = a_b[0];
+		fast_assign_bytes(tmp,a_b[0]);
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+	
+
+		// m_o_bufr += a[1];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[1]);
+		//tmp = a_b[1];
+		fast_assign_bytes(tmp,a_b[1]);
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+	
+
+		m_evl_inp_ix++;
+	}
+	else if (current_gate.m_tag == Circuit::SGX_INP)
+	{
+		//__m128i a[2];
+		Bytes a_b[2];
+
+		// zero_key = m_prng.rand(Env::k());
+		static Bytes tmp;
+
+		tmp = m_prng.rand(Env::k());
+		tmp.resize(16, 0);
+		//current_zero_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_zero_key_b = tmp;
+		//print("czkeyg",current_zero_key_b,current_zero_key);
+
+		//cout << "size: "<<m_sgx_keys->size()<<"  index: "<<m_sgx_inp_ix<<"\n";
+
+		// a[0] = (*m_ot_keys)[2*m_evl_inp_ix+0];
+		tmp = (*m_sgx_keys)[2*m_sgx_inp_ix+0];
+		tmp.resize(16, 0);
+		//a[0] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		
+
+		//a_b[0] = tmp;
+		a_b[0].resize(16);
+		fast_assign_bytes(a_b[0],tmp);
+	
+	
+
+		// a[1] = (*m_ot_keys)[2*m_evl_inp_ix+1];
+		tmp = (*m_sgx_keys)[2*m_sgx_inp_ix+1];
+		tmp.resize(16, 0);
+		//a[1] = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		//a_b[1] = tmp;
+		a_b[1].resize(16);
+		fast_assign_bytes(a_b[1],tmp);
+	
+
+		// a[0] ^= zero_key; a[1] ^= zero_key ^ R;
+		//a[0] = _mm_xor_si128(a[0], current_zero_key);
+		//a[1] = _mm_xor_si128(a[1], _mm_xor_si128(current_zero_key, m_R));
+
+		/*a_b[0] = a_b[0]^current_zero_key_b;
+		a_b[1] = a_b[1]^current_zero_key_b^m_R_b;
+		*/
+
+		fast_xor_bytes(a_b[0],a_b[0],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],current_zero_key_b);
+		fast_xor_bytes(a_b[1],a_b[1],m_R_b);
+
+
+		uint8_t bit = sgx_permutes->at(m_sgx_inp_ix);
+
+	
+
+
+		//print("a0-2",a_b[0],a[0]);
+		//print("a1-2",a_b[1],a[1]);
+
+		// m_o_bufr += a[0];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[0]);
+		//tmp = a_b[0];
+		fast_assign_bytes(tmp,a_b[bit]);
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+	
+
+		// m_o_bufr += a[1];
+		//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), a[1]);
+		//tmp = a_b[1];
+		fast_assign_bytes(tmp,a_b[1-bit]);
+
+		//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+		memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+		buffersize +=Env::key_size_in_bytes();
+
+
+		/*cout << "GEN 0: "<<current_zero_key_b.to_hex()<<"\n";
+		cout << "GEN 1: "<<(current_zero_key_b^m_R_b).to_hex()<<"\n";
+		cout << "\n";
+		*/
+
+		m_sgx_inp_ix++;
+	}
+	else
+	{
+		const vector<uint64_t> &inputs = current_gate.m_input_idx;
+		//assert(inputs.size() == 1 || inputs.size() == 2);
+
+#ifdef FREE_XOR
+		if (is_xor(current_gate))
+		{
+
+			if(current_gate.arty == 2)
+			{
+				fast_xor_bytes(current_zero_key_b,m_w_b[inputs[0]],m_w_b[inputs[1]]);				
+			}
+			else
+			{
+			
+			 	fast_assign_bytes(current_zero_key_b,m_w_b[inputs[0]]);
+			
+			}
+
+		//print("xor res", current_zero_key_b, current_zero_key);
+		}
+		else
+#endif
+		if (current_gate.arty == 2) // 2-arity gates
+		{
+			uint8_t bit,bit_b;
+			//__m128i aes_key[2], aes_plaintext, aes_ciphertext;
+			//__m128i X[2], Y[2], Z[2];
+		
+			static Bytes tmp(16, 0);
+
+			//aes_plaintext = _mm_set1_epi64x(m_gate_ix);
+			//aes_plaintext_b.setBytes(m_gate_ix);
+
+			
+			fast_set_bytes(aes_plaintext_b,m_gate_ix);
+
+
+
+			//print("AESpt",aes_plaintext_b,aes_plaintext);
+			
+
+			//X[0] = _mm_load_si128(m_w+inputs[0]);
+			//Y[0] = _mm_load_si128(m_w+inputs[1]);
+			
+			//X_b[0] = m_w_b[inputs[0]];
+			//Y_b[0] = m_w_b[inputs[1]];
+
+			fast_assign_bytes(X_b[0], m_w_b[inputs[0]]);
+			fast_assign_bytes(Y_b[0], m_w_b[inputs[1]]);
+
+			//print("x0 2a",X_b[0],X[0]);
+			//print("y0 2a",Y_b[0],Y[0]);
+
+			//X[1] = _mm_xor_si128(X[0], m_R); // X[1] = X[0] ^ R
+			//Y[1] = _mm_xor_si128(Y[0], m_R); // Y[1] = Y[0] ^ R
+
+			//X_b[1] = X_b[0]^m_R_b;
+			//Y_b[1] = Y_b[0]^m_R_b;
+
+			fast_xor_bytes(X_b[1],X_b[0],m_R_b);
+			fast_xor_bytes(Y_b[1],Y_b[0],m_R_b);
+
+			//print("x1 2a",X_b[1],X[1]);
+			//print("y1 2a",Y_b[1],Y[1]);
+
+			//const uint8_t perm_x = _mm_extract_epi8(X[0], 0) & 0x01; // permutation bit for X
+			//const uint8_t perm_y = _mm_extract_epi8(Y[0], 0) & 0x01; // permutation bit for Y
+			//const uint8_t de_garbled_ix = (perm_y<<1)|perm_x;
+
+			const uint8_t perm_x_b = X_b[0][0]&0x1;//.get_ith_bit(0); // permutation bit for X
+			const uint8_t perm_y_b = Y_b[0][0]&0x1;//.get_ith_bit(0); // permutation bit for Y
+			const uint8_t de_garbled_ix_b = (perm_y_b<<1)|perm_x_b;
+
+			//std::cout <<"perms\n "<< (int)perm_x<<"\n "<< (int)perm_x_b<<"\n "<<(int)perm_y<<"\n "<<(int)perm_y_b;
+
+			// encrypt the 0-th entry : (X[x], Y[y])
+			//aes_key[0] = _mm_load_si128(X+perm_x);
+			//aes_key[1] = _mm_load_si128(Y+perm_y);
+
+			//aes_key_b[0] = X_b[perm_x_b];
+			//aes_key_b[1] = Y_b[perm_y_b];
+
+			fast_assign_bytes(aes_key_b[0],X_b[perm_x_b]);
+			fast_assign_bytes(aes_key_b[1],Y_b[perm_y_b]);
+
+
+			//print("aesk0-0",aes_key_b[0],aes_key[0]);
+			//print("aesk1-0",aes_key_b[1],aes_key[1]);
+
+			//KDF256((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)aes_key);
+			//aes_ciphertext_b = KDF256(aes_plaintext_b,(aes_key_b[0]+aes_key_b[1]));
+			//aes_ciphertext_b.resize(16,0);
+
+			fast_add_bytes(addtmp,aes_key_b[0],aes_key_b[1]);	
+			KDF256((uint8_t*)&(aes_plaintext_b[0]), (uint8_t*)&(aes_ciphertext_b[0]), (uint8_t*)&( (addtmp  ) [0]));
+			
+
+			//aes_ciphertext_b.resize(16,0);
+
+			
+
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask); // clear extra bits so that only k bits left
+			fast_and_bytes(aes_ciphertext_b,aes_ciphertext_b,m_clear_mask_b);	
+			
+			//print("aes res",aes_ciphertext_b,aes_ciphertext);
+
+			//bit = current_gate.m_table[de_garbled_ix];
+			bit_b = current_gate.m_table[de_garbled_ix_b];
+
+			//std::cout<<"bit "<<(int)bit<<" "<<(int)bit_b<<"\n";
+
+
+			// GRR technique: using zero entry's key as one of the output keys
+			//_mm_store_si128(Z+bit, aes_ciphertext);
+			//Z[1-bit] = _mm_xor_si128(Z[bit], m_R);
+			//current_zero_key = _mm_load_si128(Z);
+
+			//Z_b[bit_b] = aes_ciphertext_b;
+			fast_assign_bytes(Z_b[bit_b],aes_ciphertext_b);			
+
+
+			fast_xor_bytes(Z_b[1-bit_b],Z_b[bit_b],m_R_b);
+			//Z_b[1-bit_b] = Z_b[bit_b]^m_R_b;
+			
+
+			//current_zero_key_b = Z_b[0];
+			fast_assign_bytes(current_zero_key_b,Z_b[0]);
+
+
+			//print("zb0",Z_b[0],Z[0]);
+			//print("zb1",Z_b[1],Z[1]);
+			//print("czk",current_zero_key_b,current_zero_key);
+
+
+			// encrypt the 1st entry : (X[1-x], Y[y])
+			//aes_key[0] = _mm_xor_si128(aes_key[0], m_R);
+
+			//aes_key_b[0] = aes_key_b[0]^m_R_b;
+			fast_xor_bytes(aes_key_b[0], aes_key_b[0],m_R_b);
+
+
+			//print("aesk2",aes_key_b[0],aes_key[0]);
+
+			//KDF256((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//bit = current_gate.m_table[0x01^de_garbled_ix];
+			//aes_ciphertext = _mm_xor_si128(aes_ciphertext, Z[bit]);
+
+			//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), aes_ciphertext);
+			//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+			//aes_ciphertext_b = KDF256(aes_plaintext_b,(aes_key_b[0]+aes_key_b[1]));
+			//aes_ciphertext_b.resize(16,0);
+			fast_add_bytes(addtmp,aes_key_b[0],aes_key_b[1]);	
+			KDF256((uint8_t*)&(aes_plaintext_b[0]), (uint8_t*)&(aes_ciphertext_b[0]), (uint8_t*)&( (addtmp  ) [0]));
+			
+			//aes_ciphertext_b.resize(16,0);
+			//aes_ciphertext_b = aes_ciphertext_b&&m_clear_mask_b;
+			fast_and_bytes(aes_ciphertext_b,aes_ciphertext_b,m_clear_mask_b);	
+			
+			bit_b = current_gate.m_table[0x01^de_garbled_ix_b];
+			
+
+			//aes_ciphertext_b = aes_ciphertext_b ^ Z_b[bit_b];
+			fast_xor_bytes(aes_ciphertext_b,aes_ciphertext_b,Z_b[bit_b]);
+
+			//Bytes tmp2 = aes_ciphertext_b;
+			
+
+			//m_o_bufr.insert(m_o_bufr.end(), tmp2.begin(), tmp2.begin()+Env::key_size_in_bytes());
+			//print("entry1",tmp2,tmp);
+			
+			memcpy(&buffer[buffersize], &(aes_ciphertext_b[0]),Env::key_size_in_bytes());
+			buffersize +=Env::key_size_in_bytes();
+	
+			// encrypt the 2nd entry : (X[x], Y[1-y])
+			//aes_key[0] = _mm_xor_si128(aes_key[0], m_R);
+			//aes_key[1] = _mm_xor_si128(aes_key[1], m_R);
+
+			//KDF256((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//bit = current_gate.m_table[0x02^de_garbled_ix];
+			//aes_ciphertext = _mm_xor_si128(aes_ciphertext, Z[bit]);
+			//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), aes_ciphertext);
+			//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+			//aes_key_b[0] = aes_key_b[0] ^ m_R_b;
+			//aes_key_b[1] = aes_key_b[1] ^ m_R_b;
+
+
+			
+			fast_xor_bytes(aes_key_b[0],aes_key_b[0],m_R_b);
+			fast_xor_bytes(aes_key_b[1],aes_key_b[1],m_R_b);
+
+
+
+			//aes_ciphertext_b = KDF256(aes_plaintext_b,(aes_key_b[0]+aes_key_b[1]));
+			//aes_ciphertext_b.resize(16,0);
+	
+			fast_add_bytes(addtmp,aes_key_b[0],aes_key_b[1]);	
+			
+
+			//startTimec = RDTSC2;
+		
+			KDF256((uint8_t*)&(aes_plaintext_b[0]), (uint8_t*)&(aes_ciphertext_b[0]), (uint8_t*)&( (addtmp  ) [0]));
+		
+			//endTimec = RDTSC2;
+			//countrd += (endTimec - startTimec);
+		
+
+
+			//aes_ciphertext_b.resize(16,0);
+			//aes_ciphertext_b = aes_ciphertext_b&&m_clear_mask_b;
+			fast_and_bytes(aes_ciphertext_b,aes_ciphertext_b,m_clear_mask_b);	
+			
+
+			bit_b = current_gate.m_table[0x02^de_garbled_ix_b];
+
+
+			//aes_ciphertext_b = aes_ciphertext_b ^ Z_b[bit_b];
+			fast_xor_bytes(aes_ciphertext_b,aes_ciphertext_b,Z_b[bit_b]);
+
+
+
+			//tmp2 = aes_ciphertext_b;
+			//m_o_bufr.insert(m_o_bufr.end(), tmp2.begin(), tmp2.begin()+Env::key_size_in_bytes());
+			//print("entry2",tmp2,tmp);
+
+
+			memcpy(&buffer[buffersize], &(aes_ciphertext_b[0]),Env::key_size_in_bytes());
+			buffersize +=Env::key_size_in_bytes();
+	
+			// encrypt the 3rd entry : (X[1-x], Y[1-y])
+			//aes_key[0] = _mm_xor_si128(aes_key[0], m_R);
+
+			//KDF256((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//bit = current_gate.m_table[0x03^de_garbled_ix];
+			//aes_ciphertext = _mm_xor_si128(aes_ciphertext, Z[bit]);
+			//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), aes_ciphertext);
+			//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+			//aes_key_b[0] = aes_key_b[0] ^ m_R_b;
+			fast_xor_bytes(aes_key_b[0],aes_key_b[0],m_R_b);
+			//aes_ciphertext_b = KDF256(aes_plaintext_b,(aes_key_b[0]+aes_key_b[1]));
+			//aes_ciphertext_b.resize(16,0);
+		
+			fast_add_bytes(addtmp,aes_key_b[0],aes_key_b[1]);	
+			KDF256((uint8_t*)&(aes_plaintext_b[0]), (uint8_t*)&(aes_ciphertext_b[0]), (uint8_t*)&( (addtmp  ) [0]));
+		
+			//aes_ciphertext_b.resize(16,0);
+			//aes_ciphertext_b = aes_ciphertext_b&&m_clear_mask_b;
+			fast_and_bytes(aes_ciphertext_b,aes_ciphertext_b,m_clear_mask_b);	
+			
+
+			bit_b = current_gate.m_table[0x03^de_garbled_ix_b];
+			//aes_ciphertext_b = aes_ciphertext_b ^ Z_b[bit_b];
+			fast_xor_bytes(aes_ciphertext_b,aes_ciphertext_b,Z_b[bit_b]);
+
+
+			//tmp2 = aes_ciphertext_b;
+			//m_o_bufr.insert(m_o_bufr.end(), tmp2.begin(), tmp2.begin()+Env::key_size_in_bytes());
+			//print("entry3",tmp2,tmp);
+			
+			memcpy(&buffer[buffersize], &(aes_ciphertext_b[0]),Env::key_size_in_bytes());
+			buffersize +=Env::key_size_in_bytes();
+	
+		}
+		else // 1-arity gates
+		{
+			std::cout<<"\n1arty\n";
+			//uint8_t bit;
+			//__m128i aes_key, aes_plaintext, aes_ciphertext;
+			//__m128i X[2], Z[2];
+			static Bytes tmp;
+			uint8_t bit,bit_b;
+			//__m128i aes_key[2], aes_plaintext, aes_ciphertext;
+			//__m128i X[2], Y[2], Z[2];
+			Bytes aes_key_b, aes_plaintext_b, aes_ciphertext_b;
+			Bytes X_b[2],  Z_b[2];
+			//static Bytes tmp(16, 0);
+
+			tmp.assign(16, 0);
+
+			//aes_plaintext = _mm_set1_epi64x(m_gate_ix);
+			///aes_plaintext_b.setBytes(m_gate_ix);
+
+			
+			fast_set_bytes(aes_plaintext_b,m_gate_ix);
+
+
+
+			//print("AESpt",aes_plaintext_b,aes_plaintext);
+			
+			
+			X_b[0] = m_w_b[inputs[0]];
+			X_b[1] = X_b[0] ^ m_R_b;
+
+			//X[0] = _mm_load_si128(m_w+inputs[0]);
+			//X[1] = _mm_xor_si128(X[0], m_R);
+
+			//const uint8_t perm_x = _mm_extract_epi8(X[0], 0) & 0x01;
+			const uint8_t perm_x_b = X_b[0].get_ith_bit(0);
+
+			// 0-th entry : X[x]
+			//aes_key = _mm_load_si128(X+perm_x);
+			//KDF128((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)&aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//bit = current_gate.m_table[perm_x];
+
+			aes_key_b = X_b[perm_x_b];
+			aes_ciphertext_b = KDF128(aes_plaintext_b,(aes_key_b));
+			aes_ciphertext_b.resize(16,0);
+			aes_ciphertext_b = aes_ciphertext_b&&m_clear_mask_b;
+			bit_b = current_gate.m_table[perm_x_b];
+
+			//_mm_store_si128(Z+bit, aes_ciphertext);
+			//Z[1-bit] = _mm_xor_si128(Z[bit], m_R);
+			//current_zero_key = _mm_load_si128(Z);
+
+			Z_b[bit_b] = aes_ciphertext_b;
+			Z_b[1-bit_b] = Z_b[bit_b]^m_R_b;
+			current_zero_key_b = Z_b[0];
+			
+
+
+			// 1-st entry : X[1-x]
+			//aes_key = _mm_xor_si128(aes_key, m_R);
+
+			//KDF128((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)&aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//bit = current_gate.m_table[0x01^perm_x];
+			//aes_ciphertext = _mm_xor_si128(aes_ciphertext, Z[bit]);
+			//_mm_storeu_si128(reinterpret_cast<__m128i*>(&tmp[0]), aes_ciphertext);
+			//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());
+
+			aes_key_b = aes_key_b ^ m_R_b;
+			aes_ciphertext_b = KDF128(aes_plaintext_b,(aes_key_b));
+			aes_ciphertext_b.resize(16,0);
+			aes_ciphertext_b = aes_ciphertext_b&&m_clear_mask_b;
+			bit_b = current_gate.m_table[0x01^perm_x_b];
+			aes_ciphertext_b = aes_ciphertext_b ^ Z_b[bit_b];
+			tmp = aes_ciphertext_b;
+			//m_o_bufr.insert(m_o_bufr.end(), tmp.begin(), tmp.begin()+Env::key_size_in_bytes());			
+
+			
+			memcpy(&buffer[buffersize], &(tmp[0]),Env::key_size_in_bytes());
+			buffersize +=Env::key_size_in_bytes();
+	
+
+		}
+
+		if (current_gate.m_tag == Circuit::EVL_OUT)
+		{
+			//m_o_bufr.push_back(current_zero_key_b.get_ith_bit(0)); // permutation bit
+
+			buffer[buffersize] = current_zero_key_b.get_ith_bit(0); 
+			buffersize +=1;
+	
+			//std::cout <<"eo"<< (int)(_mm_extract_epi8(current_zero_key, 0) & 0x01) <<" "<< (int)current_zero_key_b.get_ith_bit(0)<<"\n";
+		}
+		else if (current_gate.m_tag == Circuit::GEN_OUT)
+		{
+			//m_o_bufr.push_back(current_zero_key_b.get_ith_bit(0)); // permutation bit
+
+			buffer[buffersize] = current_zero_key_b.get_ith_bit(0); 
+			buffersize +=1;
+
+			//std::cout <<"go"<< (int)(_mm_extract_epi8(current_zero_key, 0) & 0x01) <<" "<< (int)current_zero_key_b.get_ith_bit(0)<<"\n";
+
+//			// TODO: C[ix_0] = w[ix0] || randomness, C[ix_1] = w[ix1] || randomness
+//			m_o_bufr += (key_pair[0] + m_prng.rand(Env::k())).hash(Env::k());
+//			m_o_bufr += (key_pair[1] + m_prng.rand(Env::k())).hash(Env::k());
+		}
+		else if (current_gate.m_tag == Circuit::SGX_OUT)
+		{
+			sgx_keys_out->push_back((current_zero_key_b).hash(Env::k()));
+			sgx_keys_out->push_back((current_zero_key_b ^ m_R_b).hash(Env::k()));
+		}
+	}
+
+	//_mm_store_si128(m_w+current_gate.m_idx, current_zero_key);
+	
+	/*if(m_w_b[current_gate.m_idx].size() != current_zero_key_b.size())
+	{
+		m_w_b[current_gate.m_idx].resize(current_zero_key_b.size());
+	}*/
+
+	//memcpy(&(m_w_b[current_gate.m_idx][0]),&(current_zero_key_b[0]),Env::key_size_in_bytes());
+	fast_assign_bytes(m_w_b[current_gate.m_idx],current_zero_key_b);
+
+
+	//std::cout << m_w_b[current_gate.m_idx].to_hex() <<" vs ";
+
+
+
+	//m_w_b[current_gate.m_idx]=current_zero_key_b;
+
+	//std::cout << m_w_b[current_gate.m_idx].to_hex() <<"\n";
+
+
+
+	
+	//print("store",m_w_b[current_gate.m_idx],m_w[current_gate.m_idx]);
+
+	m_gate_ix++;
+}
+/*
+void GarbledCct::update_hash(const Bytes &data)
+{
+	m_hash += data;
+
+#ifdef RAND_SEED
+	if (m_hash.size() > CIRCUIT_HASH_BUFFER_SIZE) // hash the circuit by chunks
+	{
+		Bytes temperary_hash = m_hash.hash(Env::k());
+		m_hash.clear();
+		m_hash += temperary_hash;
+	}
+#endif
+}*/
+
+void GarbledCct::com_next_gate(const Gate &current_gate)
+{
+	gen_next_gate(current_gate);
+	//update_hash(m_o_bufr);
+	//m_o_bufr.clear(); // flush the output buffer
+}
+
+
+void GarbledCct::evl_next_gate(const Gate &current_gate)
+{
+	//__m128i current_key, a;
+	//static Bytes::const_iterator it;
+	static Bytes tmp;
+
+	if (current_gate.m_tag == Circuit::GEN_INP)
+	{
+		uint8_t bit = m_gen_inp_mask.get_ith_bit(m_gen_inp_ix);
+		//Bytes::iterator it = m_i_bufr_ix + bit*Env::key_size_in_bytes();
+
+		
+
+		tmp = new_m_M[m_gen_inp_ix].hash(Env::k());
+		tmp.resize(16, 0);
+		//current_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_key_b = tmp;
+		//print("ck",current_key_b,current_key);
+
+		/*tmp.assign(it, it+Env::key_size_in_bytes());
+		tmp.resize(16, 0);
+		*/
+		
+		memcpy(&tmp[0],count+recvdataptr+bit*Env::key_size_in_bytes(),Env::key_size_in_bytes());
+/*
+		if(m_gen_inp_ix < 4)
+			std::cout <<"bit: "<< (int)bit <<"  "<<m_gen_inp_ix<<" "<<new_m_M[m_gen_inp_ix].hash(Env::k()).to_hex()<<"\n";
+*/
+
+		//a = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		a_b = tmp;
+		//print("a",a_b,a);
+
+		//m_i_bufr_ix += Env::key_size_in_bytes()*2;
+		count += Env::key_size_in_bytes()*2;
+
+		//current_key = _mm_xor_si128(current_key, a);
+		current_key_b = current_key_b ^ a_b;
+
+		//print("ck",current_key_b,current_key);
+		
+
+		m_gen_inp_ix++;
+	}
+	else if (current_gate.m_tag == Circuit::EVL_INP)
+	{
+		uint8_t bit = m_evl_inp.get_ith_bit(m_evl_inp_ix);
+		//Bytes::iterator it = m_i_bufr_ix + bit*Env::key_size_in_bytes();
+
+		tmp = (*m_ot_keys)[m_evl_inp_ix];
+		tmp.resize(16, 0);
+		//memcpy(tmp,count+recvdataptr+bit*Env::key_size_in_bytes());
+		//current_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_key_b = tmp;
+
+		//print("ck1",current_key_b,current_key);
+
+		/*tmp.assign(it, it+Env::key_size_in_bytes());
+		tmp.resize(16, 0)*/;
+		memcpy(&tmp[0],count+recvdataptr+bit*Env::key_size_in_bytes(),Env::key_size_in_bytes());
+		//a = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		a_b = tmp;
+		
+		//print("a",a_b,a);
+
+		//m_i_bufr_ix += Env::key_size_in_bytes()*2;
+		count += Env::key_size_in_bytes()*2;
+	
+		
+	
+		//current_key = _mm_xor_si128(current_key, a);
+		current_key_b = current_key_b ^ a_b;
+
+		//print("ck2",current_key_b,current_key);
+
+		m_evl_inp_ix++;
+	}
+	else if (current_gate.m_tag == Circuit::SGX_INP)
+	{
+		//uint8_t bit = m_evl_inp.get_ith_bit(m_evl_inp_ix);
+		//Bytes::iterator it = m_i_bufr_ix + bit*Env::key_size_in_bytes();
+
+		tmp = (*m_sgx_keys)[m_sgx_inp_ix];
+		tmp.resize(16, 0);
+		
+		uint8_t bit = tmp.get_ith_bit(0);
+
+		//memcpy(tmp,count+recvdataptr+bit*Env::key_size_in_bytes());
+		//current_key = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		current_key_b = tmp;
+
+		//print("ck1",current_key_b,current_key);
+
+		/*tmp.assign(it, it+Env::key_size_in_bytes());
+		tmp.resize(16, 0)*/;
+		memcpy(&tmp[0],count+recvdataptr+bit*Env::key_size_in_bytes(),Env::key_size_in_bytes());
+		//a = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+		a_b = tmp;
+		
+		//print("a",a_b,a);
+
+		//m_i_bufr_ix += Env::key_size_in_bytes()*2;
+		count += Env::key_size_in_bytes()*2;
+	
+		
+	
+		//current_key = _mm_xor_si128(current_key, a);
+		current_key_b = current_key_b ^ a_b;
+
+		//print("ck2",current_key_b,current_key);
+
+		//cout << "EVL: "<<current_key_b.to_hex()<<"\n\n";
+
+		m_sgx_inp_ix++;
+	}
+	else
+	{
+        const vector<uint64_t> &inputs = current_gate.m_input_idx;
+
+
+
+#ifdef FREE_XOR
+		if (is_xor(current_gate))
+		{
+			//current_key = inputs.size() == 2?_mm_xor_si128(m_w[inputs[0]], m_w[inputs[1]]) : _mm_load_si128(m_w+inputs[0]);
+
+		//	current_key_b = inputs.size() == 2? (m_w_b[inputs[0]] ^ m_w_b[inputs[1]]) : (m_w_b[inputs[0]]);
+		
+			if(current_gate.arty == 2)
+			{
+				fast_xor_bytes(current_key_b,m_w_b[inputs[0]],m_w_b[inputs[1]]);				
+			}
+			else
+			{
+			
+			 	fast_assign_bytes(current_key_b,m_w_b[inputs[0]]);
+			
+			}
+			//print("xor",current_key_b,current_key);
+		}
+		else
+#endif
+        if (current_gate.arty == 2) // 2-arity gates
+		{
+		
+			
+
+		
+        	//__m128i aes_key[2], aes_plaintext, aes_ciphertext;
+		//static Bytes aes_key_b[2], aes_plaintext_b, aes_ciphertext_b;
+
+			//aes_plaintext = _mm_set1_epi64x(m_gate_ix);	
+			//aes_plaintext_b.setBytes(m_gate_ix);
+
+			fast_set_bytes(aes_plaintext_b,m_gate_ix);
+
+
+			//print("aes plaintext",aes_plaintext_b,aes_plaintext);
+
+			//aes_key[0] = _mm_load_si128(m_w+inputs[0]);
+			//aes_key[1] = _mm_load_si128(m_w+inputs[1]);
+
+			//aes_key_b[0] = m_w_b[inputs[0]];
+			//aes_key_b[1] = m_w_b[inputs[1]];
+	
+		
+	
+			fast_assign_bytes(aes_key_0,m_w_b[inputs[0]]);
+			fast_assign_bytes(aes_key_1,m_w_b[inputs[1]]);
+
+
+			//print("aes_key0",aes_key_b[0],aes_key[0]);
+			//print("aes_key1",aes_key_b[1],aes_key[1]);
+
+			//const uint8_t perm_x = _mm_extract_epi8(aes_key[0], 0) & 0x01;
+			//const uint8_t perm_y = _mm_extract_epi8(aes_key[1], 0) & 0x01;
+
+			const uint8_t perm_x_b = aes_key_0[0]  & 0x01;
+			const uint8_t perm_y_b = aes_key_1[0]  & 0x01; 
+			
+			
+
+			//KDF256((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+			//uint8_t garbled_ix = (perm_y<<1) | (perm_x<<0);
+
+			//aes_ciphertext_b = KDF256(aes_plaintext_b,(aes_key_b[0]+aes_key_b[1]));
+	
+			//aes_ciphertext_b.resize(16,0);	
+			fast_add_bytes(addtmp,aes_key_0,aes_key_1);
+		
+			//startTimec = RDTSC2;
+
+
+			KDF256((uint8_t*)&(aes_plaintext_b[0]), (uint8_t*)&(aes_ciphertext_b[0]), (uint8_t*)&( (addtmp  ) [0]));
+			
+
+		
+			//endTimec = RDTSC2;
+			//countrd += (endTimec - startTimec);
+		
+
+			//aes_ciphertext_b.resize(16,0);
+			//aes_ciphertext_b = aes_ciphertext_b && m_clear_mask_b;
+			fast_and_bytes(aes_ciphertext_b,aes_ciphertext_b,m_clear_mask_b);
+
+
+			uint8_t garbled_ix_b = (perm_y_b<<1) | (perm_x_b<<0);
+	
+			//print("aes res", aes_ciphertext_b, aes_ciphertext);
+
+
+			if (garbled_ix_b == 0)
+			{
+				//current_key = _mm_load_si128(&aes_ciphertext);
+			//	current_key_b = aes_ciphertext_b;
+				fast_assign_bytes(current_key_b,aes_ciphertext_b);
+			}
+			else
+			{
+				memcpy(&(tmp[0]),recvdataptr+count+ (garbled_ix_b-1)*Env::key_size_in_bytes(),Env::key_size_in_bytes());
+				//std::cout <<"a "<< tmp.to_hex()<<"\n";
+
+				/*it = m_i_bufr_ix+(garbled_ix_b-1)*Env::key_size_in_bytes();
+				tmp.assign(it, it+Env::key_size_in_bytes());
+				tmp.resize(16, 0);
+				*///std::cout <<"b "<< tmp.to_hex()<<"\n";
+				
+				//a = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+			//	a_b = tmp;
+				fast_assign_bytes(a_b,tmp);
+				//current_key = _mm_xor_si128(aes_ciphertext, a);
+				//current_key_b = aes_ciphertext_b ^ a_b;
+				fast_xor_bytes(current_key_b,aes_ciphertext_b,tmp);
+			}
+			//m_i_bufr_ix += 3*Env::key_size_in_bytes();
+			count += 3*Env::key_size_in_bytes();
+	
+			
+		}
+		else // 1-arity gates
+		{
+        		//__m128i aes_key, aes_plaintext, aes_ciphertext;
+			Bytes aes_key_b, aes_plaintext_b, aes_ciphertext_b;
+
+			//aes_plaintext = _mm_set1_epi64x(m_gate_ix);
+			//aes_key = _mm_load_si128(m_w+inputs[0]);
+			//KDF128((uint8_t*)&aes_plaintext, (uint8_t*)&aes_ciphertext, (uint8_t*)&aes_key);
+			//aes_ciphertext = _mm_and_si128(aes_ciphertext, m_clear_mask);
+
+			//aes_plaintext_b.setBytes(m_gate_ix);
+			
+			std::cout<<"1 arty gate wraning\n";
+			
+			fast_set_bytes(aes_plaintext_b,m_gate_ix);
+
+
+
+			aes_key_b = m_w_b[inputs[0]];
+			aes_ciphertext_b = KDF128(aes_plaintext_b,aes_key_b);
+			aes_ciphertext_b.resize(16,0);
+			aes_ciphertext_b = aes_ciphertext_b && m_clear_mask_b;
+			
+
+			//const uint8_t perm_x = _mm_extract_epi8(aes_key, 0) & 0x01;
+			const uint8_t perm_x_b = aes_key_b.get_ith_bit(0) & 0x01;
+
+
+			if (perm_x_b == 0)
+			{
+				//current_key = _mm_load_si128(&aes_ciphertext);
+				current_key_b = aes_ciphertext_b;
+			}
+			else
+			{
+				memcpy(&(tmp[0]),recvdataptr+count+Env::key_size_in_bytes(),Env::key_size_in_bytes());
+	
+
+				/*tmp.assign(m_i_bufr_ix, m_i_bufr_ix+Env::key_size_in_bytes());
+				tmp.resize(16, 0);*/
+				//a = _mm_loadu_si128(reinterpret_cast<__m128i*>(&tmp[0]));
+				a_b = tmp;
+				//current_key = _mm_xor_si128(aes_ciphertext, a);
+				current_key_b = aes_ciphertext_b ^ a_b;
+			}
+			//m_i_bufr_ix += Env::key_size_in_bytes();
+			count += Env::key_size_in_bytes();
+
+		}
+
+		if (current_gate.m_tag == Circuit::EVL_OUT)
+		{
+			uint8_t out_bit = current_key_b.get_ith_bit(0);//_mm_extract_epi8(current_key, 0) & 0x01;
+			out_bit ^= *(recvdataptr+count);//m_i_bufr_ix;
+			m_evl_out.set_ith_bit(m_evl_out_ix, out_bit);
+			//m_i_bufr_ix++;
+			count++;
+			m_evl_out_ix++;
+		}
+		else if (current_gate.m_tag == Circuit::GEN_OUT)
+		{
+			// TODO: Ki08 implementation
+			uint8_t out_bit = current_key_b.get_ith_bit(0);//_mm_extract_epi8(current_key, 0) & 0x01;
+			out_bit ^= *(recvdataptr+count);
+			m_gen_out.set_ith_bit(m_gen_out_ix, out_bit);
+			//m_i_bufr_ix++;
+			count++;
+//			m_C[2*m_gen_out_ix+0] = Bytes(m_i_bufr_ix, m_i_bufr_ix+Env::key_size_in_bytes());
+//			m_i_bufr_ix += Env::key_size_in_bytes();
+//
+//			m_C[2*m_gen_out_ix+1] = Bytes(m_i_bufr_ix, m_i_bufr_ix+Env::key_size_in_bytes());
+//			m_i_bufr_ix += Env::key_size_in_bytes();
+
+			m_gen_out_ix++;
+		}
+		else if (current_gate.m_tag == Circuit::SGX_OUT)
+		{
+			sgx_keys_out->push_back((current_key_b).hash(Env::k()));
+		}
+	}
+
+	//_mm_store_si128(m_w+current_gate.m_idx, current_key);
+
+	
+	//m_w_b[current_gate.m_idx] = current_key_b;
+
+	fast_assign_bytes(m_w_b[current_gate.m_idx],current_key_b);
+
+	//print("store",m_w_b[current_gate.m_idx],m_w[current_gate.m_idx]);
+
+	//update_hash(m_i_bufr);
+	m_gate_ix++;
+
+
+}

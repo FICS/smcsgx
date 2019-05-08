@@ -1,0 +1,10 @@
+# Sample SFE input for Evaluator
+# Lines starting with '#' will be ignored
+# The first valid line should be
+# 1. SFEMIL - for SFE mil
+# 2. SFEUC - for SFE uc
+# 3. SFEDJ - for SFE dijk
+# Only 1 value with length 32
+SFEMIL
+#	5	9	13	17	21	25	29	33
+5,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

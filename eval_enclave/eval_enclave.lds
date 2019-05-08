@@ -1,0 +1,10 @@
+enclave.so
+{
+    global:
+        g_global_data_sim;
+        g_global_data;
+	g_peak_heap_used;
+        enclave_entry;
+    local:
+        *;
+};

@@ -1,0 +1,312 @@
+
+#define MAX_NODES_IN_BITS 11
+#define MAX_NODES 20##MAX_NODES_IN_BITS
+#define MAX_EDGES_PER_NODE 4
+#define EDGE_BIT_SIZE 32
+
+#define MAX_NODES_IN_BITS_ALL 2047##11
+#define MAX_DISTANCE 300000000
+#define INDEX_SIZE 11
+#define MAX_ITERATIONS MAX_NODES /* max nodes */
+
+
+#parties 3
+
+
+
+typedef uint_t EDGE_BIT_SIZE short
+typedef uint_t INDEX_SIZE ii
+
+typedef uint_t EDGE_BIT_SIZE Edge
+typedef struct_t Edges
+{
+   short m_array[MAX_EDGES_PER_NODE];
+}
+
+typedef uint_t MAX_NODES_IN_BITS NodeNum
+
+typedef uint_t 2 blank
+
+typedef struct_t ainputa
+{
+    NodeNum start;
+    NodeNum end;
+}
+
+
+typedef struct_t binputc
+{
+    NodeNum node[MAX_EDGES_PER_NODE];
+}
+
+
+typedef struct_t binputcedge
+{
+    Edge edge[MAX_EDGES_PER_NODE];
+}
+
+
+typedef struct_t AliceInput
+{
+    ainputa startend;
+}
+
+typedef struct_t BobInput
+{
+    binputcedge edges[MAX_NODES];
+    binputc conn[MAX_NODES];
+}
+
+typedef struct_t AliceOutput
+{
+    NodeNum alice[MAX_NODES];
+}
+
+
+#output 1 AliceOutput
+#input 3 AliceInput
+#input 2 BobInput
+
+
+
+
+typedef struct_t Node_Edges
+{
+    Edges edge;
+}
+
+
+typedef struct_t Node_Conn
+{
+    NodeNum node[MAX_EDGES_PER_NODE];
+}
+
+
+
+
+function void main()
+{
+
+    Node_Edges edges[MAX_NODES];
+    Node_Conn NodesConnections[MAX_NODES];
+
+    ii k;
+
+    Edge NodeValues[MAX_NODES];
+    blank NodesInQueue[MAX_NODES]; /*queue*/
+
+    NodeNum startnode, endnode, oldlink, newlink;
+    Edge cval, newval;
+    NodeNum NodeSelected, cconnection;
+    blank done,change,gotit;
+    NodeNum NodeLinks[MAX_NODES];
+
+
+    Edges weights;
+    NodeNum connections[MAX_EDGES_PER_NODE];
+    Edge value, cweight, oldval;
+
+    NodeNum Path[MAX_NODES];
+    NodeNum NodeToGet;
+
+    NodeNum demo;
+
+    done = 0;
+
+    for (ii i = 0; i  < MAX_NODES; i++)
+    {
+        NodeLinks[i] = MAX_NODES_IN_BITS_ALL;
+        Path[i] = 0;
+    }
+
+
+
+    for (ii i = 0; i < MAX_NODES; i++)
+    {
+        for (ii j = 0; j <  MAX_EDGES_PER_NODE;j++ )
+        {
+            NodesConnections[i].node[j] = input2.conn[i].node[j];
+        }
+    }
+
+
+    for (ii i = 0 ; i < MAX_NODES; i++)
+    {
+        for (ii j = 0; j < MAX_EDGES_PER_NODE; j++)
+        {
+            edges[i].edge.m_array[j] = input2.edges[i].edge[j];
+        }
+    }
+
+
+    startnode = input3.startend.start;
+    endnode = input3.startend.end;
+
+
+    /*for(ii i = 0; i < MAX_NODES ;i++)
+    {
+        for (ii j = 0; j< MAX_EDGES_PER_NODE ;j++ )
+        {
+            edges[i].edge.m_array[j]=0;
+            NodesConnections[i].node[j]=0;
+        }
+    }*/
+
+
+    for (ii i = 0; i < MAX_NODES;i++)
+    {
+
+        NodeValues[i] = MAX_DISTANCE;
+        NodesInQueue[i] = 0;
+
+        if(i == startnode)
+        {
+            NodesInQueue[i] = 1;
+            NodeValues[i] = 0;
+        }
+    }
+    
+
+
+
+
+    for (ii TIMES = 0; TIMES <  MAX_ITERATIONS; TIMES++)
+    +{
+        cval = MAX_DISTANCE;
+
+        NodeSelected = MAX_NODES;
+
+        for (ii i = 0; i < MAX_NODES; i++)
+        {
+            if (cval > NodeValues[i] )
+            {
+                if ( NodesInQueue[i] == 1 )
+                {
+                    cval = NodeValues[i];
+                    NodeSelected = i;
+                }
+            }
+        }
+
+
+        if(NodeSelected == endnode)
+        {
+            done = 1;
+        }
+
+        value = cval;
+
+        for (ii i =0; i < MAX_NODES; i++)
+        {
+            if ( NodeSelected == i)
+            {
+                NodesInQueue[i] = 0;
+            }
+        }
+
+        for (ii i = 0; i < MAX_NODES; i++)
+        {
+            if (NodeSelected == i)
+            {
+                for (ii j = 0; j < MAX_EDGES_PER_NODE;j++ )
+                {
+                    weights.m_array[j] = edges[i].edge.m_array[j];
+                    connections[j] = NodesConnections[i].node[j];
+                }
+            }
+        }
+
+
+        for (ii i = 0; i< MAX_EDGES_PER_NODE;i++ )
+        {
+            cweight = weights.m_array[i];
+            cconnection = connections[i];
+            newval = value + cweight;
+
+            for (ii j = 0; j < MAX_NODES; j++)
+            {
+                if (j == cconnection)
+                {
+                    oldval = NodeValues[j];
+                    oldlink = NodeLinks[j];
+                }
+            }
+
+
+            change = 1;
+            newlink = NodeSelected;
+
+            if( oldval < newval)
+            {
+                newval = oldval;
+                newlink = oldlink;
+                change = 0;
+            }
+
+            for(ii j = 0; j <  MAX_NODES; j++)
+            {
+                if ( j == cconnection)
+                {
+                    NodeValues[j] = newval;
+                    NodeLinks[j] = newlink;
+                }
+            }
+
+            for (ii j = 0; j < MAX_NODES; j++ )
+            {
+                if (j == cconnection)
+                {
+                    if (change == 1 )
+                    {
+                        NodesInQueue[j] = 1;
+                    }
+                }
+            }
+        }
+
+
+    }+
+    
+    /*output1 = NodeSelected;*/
+
+    
+    
+    
+    for (ii j = 0; j < MAX_NODES; j++)
+    {
+        Path[j] = MAX_NODES_IN_BITS_ALL;
+    }
+
+    NodeToGet = endnode;
+
+    
+    
+    for (ii i = 0; i  < MAX_NODES;i++ )
+    {
+        gotit=0;
+        for (ii j = 0; j< MAX_NODES;j++)
+        {
+            if ( gotit == 0 )
+            {
+                if ( j == NodeToGet )
+                {
+                    NodeToGet = NodeLinks[j];
+                    Path[i] = j;
+                    gotit = 1;
+                }
+            }
+        }
+    }
+    
+
+    
+    for(ii i = 0; i < MAX_NODES; i++)
+    {
+
+        output1.alice[i] = Path[i];
+    }
+    
+
+}
+
+
