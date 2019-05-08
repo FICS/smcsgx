@@ -2,7 +2,7 @@
 
 ### Developed by researchers from the Florida Institute for Cybersecurity Research (FICS Research)
 
-The goal of secure function evaluation (SFE), sometimes referred to as secure multiparty computation (SMC), is to enable multiple parties to compute and receive the output of a function without having each party's private input exposed to any other party.
+The goal of secure function evaluation (SFE), sometimes referred to as secure multiparty computation (SMC), is to enable multiple parties to compute and receive the output of a function without learning the private inputs from any other party.
 
 We propose a hybrid two-party SFE (2P-SFE) scheme where the function is partitioned into a sequence of round functions. Some of these rounds functions are evaluated within an SGX enclave while others are evaluated using a garbled circuit.
 
@@ -11,7 +11,7 @@ Our protocols involve two parties: the sender (Alice) and the evaluator (Bob).
 *  Evaluator implementation is comprised of: State Machine + Socket + Enclave + SGX Remote Attestation + YAO (garbled circuits)
 *  Sender implementation is comprised of: State Machine + Socket + Enclave + YAO
 
-#####Setup Notes
+##### Setup Notes
 1. Use "#if defined(\_MSC\_VER)" for Windows compilation
 2. Use "#elif defined(\_\_GNUC\_\_)" for Linux gcc/make compilation
 3. All code was developed for Linux
@@ -23,7 +23,7 @@ Our protocols involve two parties: the sender (Alice) and the evaluator (Bob).
 9. Private key files (.pem) in enclave subdirectories were pulled from the Intel SGX SDK sample code and left for completeness
 10. Run ``make`` within the sample\_libcrypto subdirectory at first to generate **libsample\_libcrypto.so**
 
-#####Repository Contents
+##### Repository Contents
 Sub-directories:
 
 * **common**: code common to both evaluator's and sender's application
@@ -50,13 +50,13 @@ Top-level files:
 * **Makefile**
 * **README.md**
 
-#####Building/Running the Code
+##### Building/Running the Code
 Build using the build\_runs.sh script, which will call `make`. Once built, refer to the included __HOWTO.txt__ file for invocation instructions.
 
-#####Frigate Dependencies
+##### Frigate Dependencies
 We adapt Frigate (garbled circuit compiler and execution environment) for evaluation of round functions within garbled circuits. Successful compilation of the Frigate component (YAO) may be best achieved on a system with Bison version 2.7.1 and Flex version 2.5.37. Frigate is available at <https://bitbucket.org/bmood/frigaterelease>.
 
-#####AsiaCCS'19 paper citation
+##### AsiaCCS'19 paper citation
 This repository contains the implementation of the hybrid protocols presented in our AsiaCCS'19 paper. The full BibTeX citation for our paper is as follows:
 
 ```
